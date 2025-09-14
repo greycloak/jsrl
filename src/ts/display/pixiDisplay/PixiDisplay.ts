@@ -5,7 +5,7 @@
  * 
  */
 
-import { Application, Assets, Texture, Rectangle, Sprite, Text, Container } from 'pixi.js';
+import { Application, Assets, Texture, Rectangle, Sprite, Text, Container, Graphics } from 'pixi.js';
 import PIXITextBox from './PIXITextBox.class';
 import PixiUtils from './PixiUtils';
 
@@ -17,14 +17,9 @@ function resizeCanvas () {
 	}
 	const padding = 0;
 	const gameDiv = document.getElementById('game');
-	const aspectRatio = theCanvas.height / theCanvas.width;
-	if (innerWidth * aspectRatio <= innerHeight) {
-		theCanvas.style.width = (innerWidth - padding) + "px"; 
-		theCanvas.style.height = (innerWidth * aspectRatio - padding) + "px";
-	} else {
-		theCanvas.style.width = (innerHeight * 1/aspectRatio - padding)+ "px"; 
-		theCanvas.style.height = (innerHeight - padding) + "px";
-	}
+	// Stretch to fill the entire window
+	theCanvas.style.width = (innerWidth - padding) + "px"; 
+	theCanvas.style.height = (innerHeight - padding) + "px";
 	gameDiv.style.width = theCanvas.style.width;
 	gameDiv.style.height = theCanvas.style.height;
 }
@@ -32,12 +27,18 @@ function resizeCanvas () {
 window.addEventListener("resize", resizeCanvas);
 
 export default {
+	inMapView: false,
 	init: async function(game, config) {
 		this.textureMap = {};
 		this.game = game;
+		// Compute viewport tile counts from window size to avoid scaling
+		const desiredTile = config.tileSize;
+		this.viewportCountX = Math.max(10, Math.floor(window.innerWidth / desiredTile));
+		this.viewportCountY = Math.max(10, Math.floor(window.innerHeight / desiredTile));
+		this.tileSize = config.tileSize;
 		const app = new Application<HTMLCanvasElement>({
-			width: config.tileSize * config.viewportCountX,
-			height: config.tileSize * config.viewportCountY,
+			width: this.tileSize * this.viewportCountX,
+			height: this.tileSize * this.viewportCountY,
 		})
 		document.getElementById('game').appendChild(app.view);
 		theCanvas = app.view;
@@ -72,8 +73,8 @@ export default {
 		this.tileLayers = [
 			[],[],[]
 		];
-		for (let x = 0; x < config.viewportCountX; x++) {
-			for (let y = 0; y < config.viewportCountY; y++) {
+		for (let x = 0; x < this.viewportCountX; x++) {
+			for (let y = 0; y < this.viewportCountY; y++) {
 				for (let l = 0; l < 3; l++) {
 					const sprite = new Sprite(this.textureMap['0-0'])
 					mainGameContainer.addChild(sprite);
@@ -83,8 +84,8 @@ export default {
 				}
 			}
 		}
-		this.semiViewportCountX = Math.floor(config.viewportCountX / 2);
-		this.semiViewportCountY = Math.floor(config.viewportCountY / 2);
+		this.semiViewportCountX = Math.floor(this.viewportCountX / 2);
+		this.semiViewportCountY = Math.floor(this.viewportCountY / 2);
 		const text = new Text('', {
 			fontFamily: 'Kenney Pixel',
 			fontSize: config.textboxFontSize,
@@ -123,12 +124,97 @@ export default {
 		this.inventoryText.scale.y = 0.25;
 		mainGameContainer.addChild(this.inventoryText);
 		this.inventoryText.visible = false;
-		this.inventoryText.position.x = 260;
-		this.inventoryText.position.y = 68;
+		this.inventoryText.position.x = 16;
+		this.inventoryText.position.y = 16;
 
 		this.transparentTiles = config.transparentTiles;
 
+		// Map overlay (top-right 25% mini map)
+		this.mapOverlay = new Container();
+		this.mapOverlay.visible = false;
+		mainGameContainer.addChild(this.mapOverlay);
+		// Mini map dimensions (quarter of the screen)
+		this.miniW = Math.floor(this.viewportCountX / 2);
+		this.miniH = Math.floor(this.viewportCountY / 2);
+		this.mapOverlay.position.x = (this.viewportCountX - this.miniW) * tileSize;
+		this.mapOverlay.position.y = 0;
+		// Border sprites
+		this.mapBorderTop = new Sprite(blackTexture);
+		this.mapBorderBottom = new Sprite(blackTexture);
+		this.mapBorderLeft = new Sprite(blackTexture);
+		this.mapBorderRight = new Sprite(blackTexture);
+		this.mapOverlay.addChild(this.mapBorderTop);
+		this.mapOverlay.addChild(this.mapBorderBottom);
+		this.mapOverlay.addChild(this.mapBorderLeft);
+		this.mapOverlay.addChild(this.mapBorderRight);
+		// Mini tiles container (we rebuild tiles when toggling or refreshing)
+		this.miniTilesContainer = new Container();
+		this.mapOverlay.addChild(this.miniTilesContainer);
+		// Mini player marker as circular dot (Graphics)
+		this.miniPlayerDot = new Graphics();
+		this.mapOverlay.addChild(this.miniPlayerDot);
+
 		resizeCanvas();
+	},
+	updateMapOverlayLayout: function() {
+		const ts = this.tileSize;
+		const bt = Math.max(2, Math.floor(this.tileSize / 4)); // border thickness
+		const widthPx = this.miniW * ts;
+		const heightPx = this.miniH * ts;
+		this.mapBorderTop.position.set(0, 0);
+		this.mapBorderTop.width = widthPx; this.mapBorderTop.height = bt;
+		this.mapBorderTop.tint = 0xFFFFFF;
+		this.mapBorderBottom.position.set(0, heightPx - bt);
+		this.mapBorderBottom.width = widthPx; this.mapBorderBottom.height = bt;
+		this.mapBorderBottom.tint = 0xFFFFFF;
+		this.mapBorderLeft.position.set(0, 0);
+		this.mapBorderLeft.width = bt; this.mapBorderLeft.height = heightPx;
+		this.mapBorderLeft.tint = 0xFFFFFF;
+		this.mapBorderRight.position.set(widthPx - bt, 0);
+		this.mapBorderRight.width = bt; this.mapBorderRight.height = heightPx;
+		this.mapBorderRight.tint = 0xFFFFFF;
+	},
+	updateMiniMapOverlay: function() {
+		const level = this.game.world.level;
+		if (!level.map || !level.map.length) return;
+		const levelW = level.map.length;
+		const levelH = (level.map[0] && level.map[0].length) || 0;
+		const ts = this.tileSize;
+		const bt = Math.max(2, Math.floor(ts / 4));
+		const widthPx = this.miniW * ts;
+		const heightPx = this.miniH * ts;
+		const innerX = bt;
+		const innerY = bt;
+		const innerWpx = widthPx - 2 * bt;
+		const innerHpx = heightPx - 2 * bt;
+		const miniTileSize = Math.max(1, Math.floor(Math.min(innerWpx / levelW, innerHpx / levelH)));
+		this.miniTileSize = miniTileSize;
+		// Draw the player circular marker
+		const dotRadius = Math.max(1, Math.floor(miniTileSize / 3));
+		this.miniPlayerDot.clear();
+		this.miniPlayerDot.beginFill(0xFF3333, 1);
+		this.miniPlayerDot.drawCircle(0, 0, dotRadius);
+		this.miniPlayerDot.endFill();
+		// Rebuild mini tiles
+		this.miniTilesContainer.removeChildren();
+		for (let x = 0; x < levelW; x++){
+			for (let y = 0; y < levelH; y++){
+				const cell = level.map[x] && level.map[x][y];
+				if (!cell) continue;
+				const key = cell.tilesetData;
+				const sprite = new Sprite(this.textureMap[key] || this.textureMap['0-0']);
+				sprite.width = miniTileSize;
+				sprite.height = miniTileSize;
+				sprite.position.x = innerX + x * miniTileSize;
+				sprite.position.y = innerY + y * miniTileSize;
+				this.miniTilesContainer.addChild(sprite);
+			}
+		}
+		// Player marker position
+		const px = innerX + level.player.x * miniTileSize + Math.floor(miniTileSize / 2);
+		const py = innerY + level.player.y * miniTileSize + Math.floor(miniTileSize / 2);
+		this.miniPlayerDot.position.x = px;
+		this.miniPlayerDot.position.y = py;
 	},
 	getTerrain: function(x: number, y: number) {
 		var level = this.game.world.level;
@@ -188,30 +274,47 @@ export default {
 	},
 	refresh: function() {
 		const player = this.game.world.level.player;
+		const level = this.game.world.level;
 		const noTexture = this.textureMap['0-0'];
-		for (var x = -this.semiViewportCountX; x < this.semiViewportCountX; x++) {
-			for (var y = -this.semiViewportCountY; y < this.semiViewportCountY; y++) {
-				const mapX = player.x + x;
-				const mapY = player.y + y;
-				const being = this.getBeing(mapX, mapY);
-				const item = this.transparentTiles || !being ? this.getItem(mapX, mapY) : null;
-				const terrain = this.transparentTiles || (!being && !item) ? this.getTerrain(mapX, mapY) : null;
-				const beingTexture = being ? this.textureMap[being] : noTexture;
-				const itemTexture = item ? this.textureMap[item] : noTexture;
-				const terrainTexture = terrain ? this.textureMap[terrain.tilesetData] : noTexture;
-				const index = (x+this.semiViewportCountX)+'-'+(y+this.semiViewportCountY);
-				this.tileLayers[0][index].texture = terrainTexture;
-				if (terrain) {
-					if (terrain.variation === 'outOfSight') {
-						this.tileLayers[0][index].tint = 0x0000CC;
-					} else {
-						this.tileLayers[0][index].tint = 0xFFFFFF;
-					}
-				} 
-				this.tileLayers[1][index].texture = itemTexture;
-				this.tileLayers[2][index].texture = beingTexture;
+			for (var x = -this.semiViewportCountX; x < this.semiViewportCountX; x++) {
+				for (var y = -this.semiViewportCountY; y < this.semiViewportCountY; y++) {
+					const mapX = player.x + x;
+					const mapY = player.y + y;
+					const being = this.getBeing(mapX, mapY);
+					const item = this.transparentTiles || !being ? this.getItem(mapX, mapY) : null;
+					const terrain = this.transparentTiles || (!being && !item) ? this.getTerrain(mapX, mapY) : null;
+					const beingTexture = being ? this.textureMap[being] : noTexture;
+					const itemTexture = item ? this.textureMap[item] : noTexture;
+					const terrainTexture = terrain ? this.textureMap[terrain.tilesetData] : noTexture;
+					const index = (x+this.semiViewportCountX)+'-'+(y+this.semiViewportCountY);
+					this.tileLayers[0][index].texture = terrainTexture;
+					if (terrain) {
+						if (terrain.variation === 'outOfSight') {
+							this.tileLayers[0][index].tint = 0x0000CC;
+						} else {
+							this.tileLayers[0][index].tint = 0xFFFFFF;
+						}
+					} 
+					this.tileLayers[1][index].texture = itemTexture;
+					this.tileLayers[2][index].texture = beingTexture;
+				}
 			}
+		// Update mini map if visible
+		if (this.inMapView) {
+			this.updateMapOverlayLayout();
+			this.updateMiniMapOverlay();
 		}
+	},
+	showMap: function() {
+		this.inMapView = true;
+		this.mapOverlay.visible = true;
+		this.updateMapOverlayLayout();
+		this.refresh();
+	},
+	hideMap: function() {
+		this.inMapView = false;
+		this.mapOverlay.visible = false;
+		this.refresh();
 	},
 	showInventory: function() {
 		this.inventoryBackground.visible = true;

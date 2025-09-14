@@ -94,6 +94,12 @@ export default {
 		this.term.clear();
 		this.refresh();
 	},
+	showMap: function(){
+		// No-op for test display
+	},
+	hideMap: function(){
+		// No-op for test display
+	},
 	message: function(str){
 		console.log(str);
 	},

@@ -22,6 +22,12 @@ export default {
 				this.mode = 'MOVEMENT';
 			}
 		} else if (this.mode === 'MOVEMENT'){
+			// Toggle full map view
+			if (k === ut.KEY_M){
+				this.mode = 'MAP';
+				this.game.display.showMap();
+				return;
+			}
 			if (k === ut.KEY_COMMA){
 				this.game.player.tryPickup();
 				return;
@@ -120,6 +126,13 @@ export default {
 			else return;
 			this.game.player.tryUse(this.selectedItem, this.movedir.x, this.movedir.y);
 			this.mode = 'MOVEMENT';
+		} else if (this.mode === 'MAP'){
+			// Close map view on M or Escape
+			if (k === ut.KEY_M || k === ut.KEY_ESCAPE){
+				this.mode = 'MOVEMENT';
+				this.game.display.hideMap();
+				this.game.display.refresh();
+			}
 		}
 	}
 }
