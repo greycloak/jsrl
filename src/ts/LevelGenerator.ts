@@ -13,7 +13,7 @@ import Random from './Random';
 
 export default {
 	generateTestLevel: function(level, fromId, nextLevelId){
-		const WIDTH = 200;
+		const WIDTH = 300;
 		const HEIGHT = 300;
 		const midX = Math.floor(WIDTH/2);
 		const midY = Math.floor(HEIGHT/2);
