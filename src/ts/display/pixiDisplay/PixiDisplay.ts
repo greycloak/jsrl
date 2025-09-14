@@ -129,14 +129,18 @@ export default {
 
 		this.transparentTiles = config.transparentTiles;
 
-		// Map overlay (top-right 25% mini map)
+		// Map overlay (top-right mini map)
 		this.mapOverlay = new Container();
 		this.mapOverlay.visible = false;
 		mainGameContainer.addChild(this.mapOverlay);
-		// Mini map dimensions (quarter of the screen)
-		this.miniW = Math.floor(this.viewportCountX / 2);
-		this.miniH = Math.floor(this.viewportCountY / 2);
-		this.mapOverlay.position.x = (this.viewportCountX - this.miniW) * tileSize;
+		// Mini map dimensions
+		// Width: fixed to 25% of canvas width in pixels for consistency
+		// Height: keep previous behavior (half of canvas height)
+		const canvasWpx = this.viewportCountX * tileSize;
+		const canvasHpx = this.viewportCountY * tileSize;
+		this.miniWpx = Math.floor(canvasWpx * 0.25);
+		this.miniHpx = Math.floor(canvasHpx / 2);
+		this.mapOverlay.position.x = canvasWpx - this.miniWpx;
 		this.mapOverlay.position.y = 0;
 		// Border sprites
 		this.mapBorderTop = new Sprite(blackTexture);
@@ -181,8 +185,8 @@ export default {
 	updateMapOverlayLayout: function() {
 		const ts = this.tileSize;
 		const bt = Math.max(2, Math.floor(this.tileSize / 4)); // border thickness
-		const widthPx = this.miniW * ts;
-		const heightPx = this.miniH * ts;
+		const widthPx = this.miniWpx;
+		const heightPx = this.miniHpx;
 		this.mapBorderTop.position.set(0, 0);
 		this.mapBorderTop.width = widthPx; this.mapBorderTop.height = bt;
 		this.mapBorderTop.tint = 0xFFFFFF;
@@ -227,8 +231,8 @@ export default {
 		const levelH = (level.map[0] && level.map[0].length) || 0;
 		const ts = this.tileSize;
 		const bt = Math.max(2, Math.floor(ts / 4));
-		const widthPx = this.miniW * ts;
-		const heightPx = this.miniH * ts;
+		const widthPx = this.miniWpx;
+		const heightPx = this.miniHpx;
 		const innerX = bt;
 		const innerY = bt;
 		const innerWpx = widthPx - 2 * bt;
