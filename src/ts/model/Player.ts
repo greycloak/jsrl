@@ -19,11 +19,39 @@ export default {
 	visible: [],
 	memory: {},
 	items: [],
+	name: '',
+	ancestry: 'human',
+	wealth: 0,
+	water: 0,
+	supplies: 0,
+	radiation: 0,
+	health: 6,
+	favor: { 'Red Queen': 0, 'Machine Collective': 0, 'Warlords': 0, 'Archivists': 0 },
 	init: function(game) {
 		this.game = game;
 		for (var j = -this.MAX_SIGHT_RANGE; j <= this.MAX_SIGHT_RANGE; j++){
 			this.visible[j] = [];
 		}
+		this.generateCharacter();
+	},
+	generateCharacter: function() {
+		const ancestries = ['plantoid', 'awakened', 'human', 'robot'];
+		this.ancestry = ancestries[Math.floor(Math.random()*ancestries.length)];
+		this.name = this.randomName();
+		this.wealth = 0;
+		this.water = 0;
+		this.supplies = 0;
+		this.radiation = 0;
+		this.health = 6;
+		this.favor = { 'Red Queen': 0, 'Machine Collective': 0, 'Warlords': 0, 'Archivists': 0 };
+	},
+	randomName: function() {
+		const starts = ['Ka', 'Ra', 'Ze', 'Lo', 'Mi', 'An', 'Vu', 'Te', 'Ori', 'Sha', 'Bra', 'Qua'];
+		const mids = ['nar', 'lek', 'mos', 'tan', 'vir', 'dor', 'xis', 'ran', 'mon', 'vak'];
+		const ends = ['a', 'e', 'i', 'o', 'u', 'an', 'en', 'in', 'on', 'un'];
+		return starts[Math.floor(Math.random()*starts.length)]
+			+ mids[Math.floor(Math.random()*mids.length)]
+			+ ends[Math.floor(Math.random()*ends.length)];
 	},
 	tryMove: function(dir) {
 		if (!this.game.world.level.canWalkTo(this.x+dir.x, this.y+dir.y)){

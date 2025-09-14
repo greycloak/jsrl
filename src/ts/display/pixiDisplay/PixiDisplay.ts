@@ -154,6 +154,28 @@ export default {
 		this.miniPlayerDot = new Graphics();
 		this.mapOverlay.addChild(this.miniPlayerDot);
 
+		// Character overlay (text on black background)
+		this.charOverlay = new Container();
+		this.charOverlay.visible = false;
+		mainGameContainer.addChild(this.charOverlay);
+		this.charBg = new Sprite(blackTexture);
+		this.charBg.alpha = 0.8;
+		this.charBg.width = Math.min(320, this.tileSize * this.viewportCountX - 16);
+		this.charBg.height = Math.min(220, this.tileSize * this.viewportCountY - 16);
+		this.charBg.position.set(8, 8);
+		this.charOverlay.addChild(this.charBg);
+		this.charText = new Text('', {
+			fontFamily: 'Kenney Pixel',
+			fontSize: config.textboxFontSize,
+			fill: 0xdddddd,
+			align: 'left',
+			wordWrap: true,
+			wordWrapWidth: this.charBg.width - 16
+		});
+		this.charText.scale.set(0.25, 0.25);
+		this.charText.position.set(this.charBg.position.x + 8, this.charBg.position.y + 8);
+		this.charOverlay.addChild(this.charText);
+
 		resizeCanvas();
 	},
 	updateMapOverlayLayout: function() {
@@ -173,6 +195,30 @@ export default {
 		this.mapBorderRight.position.set(widthPx - bt, 0);
 		this.mapBorderRight.width = bt; this.mapBorderRight.height = heightPx;
 		this.mapBorderRight.tint = 0xFFFFFF;
+	},
+	showCharacter: function() {
+		const p = this.game.player;
+		const level = this.game.world.level;
+		let factionLoc = 'Unknown';
+		try { factionLoc = level.territory[p.x][p.y] || 'Unknown'; } catch(e) {}
+		let text = '';
+		text += 'Character\n\n';
+		text += `Name: ${p.name}\n`;
+		text += `Ancestry: ${p.ancestry}\n`;
+		text += `Location: ${factionLoc}\n`;
+		text += `Wealth: ${p.wealth}\n\n`;
+		text += 'Favors\n';
+		text += ` Red Queen: ${p.favor['Red Queen']}\n`;
+		text += ` Machine Collective: ${p.favor['Machine Collective']}\n`;
+		text += ` Warlords: ${p.favor['Warlords']}\n`;
+		text += ` Archivists: ${p.favor['Archivists']}\n\n`;
+		text += `Water: ${p.water}  Supplies: ${p.supplies}\n`;
+		text += `Radiation: ${p.radiation}  Health: ${p.health}\n`;
+		this.charText.text = text;
+		this.charOverlay.visible = true;
+	},
+	hideCharacter: function() {
+		this.charOverlay.visible = false;
 	},
 	updateMiniMapOverlay: function() {
 		const level = this.game.world.level;

@@ -159,6 +159,46 @@ export default {
 		this.textBox.draw();
 		this.term.render();
 	},
+	showCharacter: function() {
+		const cols = this.term.w;
+		const rows = this.term.h;
+		const boxW = Math.min(50, cols - 4);
+		const boxH = Math.min(20, rows - 4);
+		const x0 = 2;
+		const y0 = 2;
+		// Draw border
+		this.term.putString("+" + "-".repeat(boxW-2) + "+", x0, y0, 255, 255, 255);
+		for (let i = 0; i < boxH-2; i++){
+			this.term.putString("|" + " ".repeat(boxW-2) + "|", x0, y0+1+i, 255, 255, 255);
+		}
+		this.term.putString("+" + "-".repeat(boxW-2) + "+", x0, y0+boxH-1, 255, 255, 255);
+		// Content
+		const p = this.game.player;
+		let y = y0 + 1;
+		const write = (s, c1=255,c2=255,c3=255) => { this.term.putString(s, x0+2, y, c1,c2,c3); y++; }
+		write("Character", 255, 200, 0);
+		write("Name: " + p.name);
+		write("Ancestry: " + p.ancestry);
+		const level = this.game.world.level;
+		let factionLoc = 'Unknown';
+		try { factionLoc = level.territory[p.x][p.y] || 'Unknown'; } catch(e) {}
+		write("Location: " + factionLoc);
+		write("Wealth: " + p.wealth);
+		write("");
+		write("Favors:");
+		write(" Red Queen: " + p.favor['Red Queen']);
+		write(" Machine Collective: " + p.favor['Machine Collective']);
+		write(" Warlords: " + p.favor['Warlords']);
+		write(" Archivists: " + p.favor['Archivists']);
+		write("");
+		write("Water: " + p.water + "  Supplies: " + p.supplies);
+		write("Radiation: " + p.radiation + "  Health: " + p.health);
+		this.term.render();
+	},
+	hideCharacter: function() {
+		this.term.clear();
+		this.refresh();
+	},
 	titleScreen() {
 		this.term.putString("JSRL Sample Roguelike", 2, 2, 255, 255, 255);
 		this.term.putString("Press Space to Start", 6, 4, 255, 255, 255);
