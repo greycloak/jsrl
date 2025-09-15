@@ -254,6 +254,98 @@ export default {
 			if (landMask[x][y]) level.map[x][y] = Tiles.BUSH;
 		}
 
+		// Rocky terrain coverage per quadrant/continent using 2–3 large clusters
+		const rockyVariants = [Tiles.ROCKY_1, Tiles.ROCKY_2, Tiles.ROCKY_3, Tiles.ROCKY_4];
+		const coverage: {[name: string]: number} = {
+			'Red Queen': 0.05, // top-left
+			'Machine Collective': 0.05, // top-right
+			'Archivists': 0.05, // bottom-right
+			'Warlords': 0.10 // bottom-left
+		};
+		const dirs4 = [
+			{dx:-1,dy:0}, {dx:1,dy:0}, {dx:0,dy:-1}, {dx:0,dy:1}
+		];
+		for (const fname in coverage){
+			// Build candidate list (grass tiles of this continent)
+			const candidates: {x:number,y:number}[] = [];
+			for (let x = 0; x < WIDTH; x++){
+				for (let y = 0; y < HEIGHT; y++){
+					if (!landMask[x][y]) continue;
+					if (level.territory[x][y] !== fname) continue;
+					if (level.map[x][y] !== Tiles.GRASS) continue;
+					candidates.push({x,y});
+				}
+			}
+			if (!candidates.length) continue;
+			const target = Math.floor(candidates.length * coverage[fname]);
+			if (target <= 0) continue;
+			const clusterCount = coverage[fname] >= 0.08 ? 3 : 2;
+			const perCluster: number[] = [];
+			for (let i = 0; i < clusterCount; i++) perCluster[i] = Math.floor(target / clusterCount);
+			for (let i = 0; i < (target % clusterCount); i++) perCluster[i]++;
+			// Helper distance function
+			const dist2 = (a:{x:number,y:number}, b:{x:number,y:number}) => {
+				const dx = a.x-b.x, dy = a.y-b.y; return dx*dx+dy*dy;
+			};
+			// Choose well-spaced seeds
+			const seeds: {x:number,y:number}[] = [];
+			for (let s = 0; s < clusterCount; s++){
+				let best = candidates[Random.n(0, candidates.length-1)], bestScore = -1;
+				for (let tries = 0; tries < 60; tries++){
+					const cand = candidates[Random.n(0, candidates.length-1)];
+					let score = 1e9;
+					for (const prev of seeds){ score = Math.min(score, dist2(cand, prev)); }
+					if (seeds.length === 0) score = Math.random();
+					if (score > bestScore){ bestScore = score; best = cand; }
+				}
+				seeds.push({x:best.x, y:best.y});
+			}
+			// Multi-BFS growth per cluster
+			const queues: {x:number,y:number}[][] = [];
+			const seen: {[key:string]: boolean} = {};
+			for (let i = 0; i < clusterCount; i++){
+				queues[i] = [];
+				const s = seeds[i];
+				if (level.map[s.x][s.y] === Tiles.GRASS) queues[i].push(s);
+			}
+			const placedPer: number[] = new Array(clusterCount).fill(0);
+			let totalPlaced = 0;
+			const keyOf = (p:{x:number,y:number}) => p.x+'-'+p.y;
+			// Round-robin expansion to keep clusters growing evenly
+			outer: while (totalPlaced < target){
+				let anyProgress = false;
+				for (let i = 0; i < clusterCount; i++){
+					if (placedPer[i] >= perCluster[i]) continue;
+					let steps = 0;
+					while (queues[i].length && placedPer[i] < perCluster[i] && steps < 200){
+						steps++;
+						const cur = queues[i].shift();
+						if (!cur) break;
+						const k = keyOf(cur);
+						if (seen[k]) continue;
+						seen[k] = true;
+						if (cur.x < 0 || cur.y < 0 || cur.x >= WIDTH || cur.y >= HEIGHT) continue;
+						if (!landMask[cur.x][cur.y]) continue;
+						if (level.territory[cur.x][cur.y] !== fname) continue;
+						if (level.map[cur.x][cur.y] !== Tiles.GRASS) continue; // don't overwrite
+						// paint
+						level.map[cur.x][cur.y] = rockyVariants[Random.n(0, rockyVariants.length-1)];
+						placedPer[i]++; totalPlaced++; anyProgress = true;
+						// enqueue neighbors
+						for (const d of dirs4){
+							const nx = cur.x + d.dx, ny = cur.y + d.dy;
+							if (nx < 0 || ny < 0 || nx >= WIDTH || ny >= HEIGHT) continue;
+							if (!landMask[nx][ny]) continue;
+							if (level.territory[nx][ny] !== fname) continue;
+							if (level.map[nx][ny] !== Tiles.GRASS) continue;
+							const nk = nx+'-'+ny; if (!seen[nk]) queues[i].push({x:nx,y:ny});
+						}
+					}
+				}
+				if (!anyProgress) break outer; // cannot place more without overwriting
+			}
+		}
+
 		// Helper to find a random land cell
 		const randLand = (): {x:number,y:number} => {
 			for (let tries = 0; tries < 5000; tries++){

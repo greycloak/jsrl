@@ -41,6 +41,38 @@ export default {
 		name: 'Water',
 		tilesetData: '8-5'
 	},
+	ROCKY_1: {
+		tile: new ut.Tile('·', 200, 200, 200),
+		darkTile: new ut.Tile('·', 120, 120, 120),
+		solid: false,
+		opaque: false,
+		name: 'Rocky Ground',
+		tilesetData: '1-0'
+	},
+	ROCKY_2: {
+		tile: new ut.Tile('·', 200, 200, 200),
+		darkTile: new ut.Tile('·', 120, 120, 120),
+		solid: false,
+		opaque: false,
+		name: 'Rocky Ground',
+		tilesetData: '2-0'
+	},
+	ROCKY_3: {
+		tile: new ut.Tile('·', 200, 200, 200),
+		darkTile: new ut.Tile('·', 120, 120, 120),
+		solid: false,
+		opaque: false,
+		name: 'Rocky Ground',
+		tilesetData: '3-0'
+	},
+	ROCKY_4: {
+		tile: new ut.Tile('·', 200, 200, 200),
+		darkTile: new ut.Tile('·', 120, 120, 120),
+		solid: false,
+		opaque: false,
+		name: 'Rocky Ground',
+		tilesetData: '4-0'
+	},
 	BOAT_EAST: {
 		tile: new ut.Tile('b', 200, 200, 0),
 		darkTile: new ut.Tile('b', 128, 128, 0),
