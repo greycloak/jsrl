@@ -14,6 +14,7 @@ export default {
 	levels: {},
 	inCombat: false,
 	combatContext: null as any,
+	possessionPiles: {} as any, // { [levelId]: { [key]: { items: any[], originalTile: any } } }
 	init: function(game) {
 		this.game = game;
 		this.player = game.player;
@@ -84,18 +85,49 @@ export default {
 		this.player.updateFOV();
 		this.game.display.refresh();
 	},
-onPlayerDefeatedInCombat: function(monster) {
+	onPlayerDefeatedInCombat: function(monster) {
 		if (!this.inCombat) return;
 		this.game.display.message('You are defeated! Retreating to the nearest town...');
 		const ctx = this.combatContext;
 		// Remove inventory and reduce to half health
+		const lostItems = this.player.items.slice();
 		this.player.items = [];
 		this.player.health = Math.max(1, Math.floor((this.player.maxHealth || 6) / 2));
 		// Restore previous level and reinsert the monster where it was
 		const BeingClass2 = (require('./Being.class').default);
 		const enemyBeing = new (BeingClass2 as any)(this.game, ctx.previousLevel, ctx.enemyRace);
-		ctx.previousLevel.addBeing(enemyBeing, ctx.enemyOriginalPos.x, ctx.enemyOriginalPos.y);
+		// Relocate the monster 2-10 tiles away on same terrain type
+		const prevLevel = ctx.previousLevel as any;
+		const ox = ctx.enemyOriginalPos.x, oy = ctx.enemyOriginalPos.y;
+		const origTile = prevLevel.map && prevLevel.map[ox] && prevLevel.map[ox][oy];
+		let mx = ox, my = oy;
+		if (origTile) {
+			const dirs = [
+				{dx:-1,dy:0},{dx:1,dy:0},{dx:0,dy:-1},{dx:0,dy:1},
+				{dx:-1,dy:-1},{dx:1,dy:-1},{dx:-1,dy:1},{dx:1,dy:1}
+			];
+			for (let tries = 0; tries < 40; tries++){
+				const d = dirs[Random.n(0, dirs.length-1)];
+				const dist = Random.n(2, 10);
+				const tx = ox + d.dx * dist;
+				const ty = oy + d.dy * dist;
+				if (tx < 0 || ty < 0) continue;
+				try {
+					const t = prevLevel.map[tx] && prevLevel.map[tx][ty];
+					if (!t) continue;
+					// Match terrain type by tilesetData
+					if (t.tilesetData !== origTile.tilesetData) continue;
+					if (!prevLevel.canWalkTo(tx, ty)) continue;
+					mx = tx; my = ty; break;
+				} catch(e) {
+					continue;
+				}
+			}
+		}
+		ctx.previousLevel.addBeing(enemyBeing, mx, my);
 		this.level = ctx.previousLevel;
+		// Drop possessions where the player was defeated on the overworld
+		this.placePossessionsPile(this.level, ctx.playerPos.x, ctx.playerPos.y, lostItems);
 		// Find nearest CITY to the player's previous position
 		let dest = null as null | {x:number,y:number};
 		try {
@@ -122,5 +154,14 @@ onPlayerDefeatedInCombat: function(monster) {
 		this.combatContext = null;
 		this.player.updateFOV();
 		this.game.display.refresh();
+	},
+	placePossessionsPile: function(level, x: number, y: number, items: any[]) {
+		if (!items || items.length === 0) return;
+		const levelId = level.id || 'unknown';
+		const key = x + '-' + y;
+		this.possessionPiles[levelId] = this.possessionPiles[levelId] || {};
+		const originalTile = level.map[x][y];
+		level.map[x][y] = (Tiles as any).POSSESSIONS;
+		this.possessionPiles[levelId][key] = { items: items.slice(), originalTile };
 	}
 }

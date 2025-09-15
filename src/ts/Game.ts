@@ -14,6 +14,7 @@ import Input from './Input';
 
 import Item from './model/Item.class';
 import Items from './data/Items.data';
+import Tiles from './data/Tiles.data';
 
 declare global {
 	interface Window {

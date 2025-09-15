@@ -89,6 +89,14 @@ export default {
 		name: 'City',
 		tilesetData: '5-19'
 	},
+	POSSESSIONS: {
+		tile: new ut.Tile('P', 255, 255, 0),
+		darkTile: new ut.Tile('P', 180, 180, 0),
+		solid: false,
+		opaque: false,
+		name: 'Possessions',
+		tilesetData: '23-1'
+	},
 	BOAT_EAST: {
 		tile: new ut.Tile('b', 200, 200, 0),
 		darkTile: new ut.Tile('b', 128, 128, 0),

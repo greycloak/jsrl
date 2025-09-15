@@ -123,6 +123,23 @@ export default {
 		this.endTurn();
 	},
 	land: function() {
+		// Possessions recovery: if standing on a POSSESSIONS tile, recover items
+		try {
+			const level = this.game.world.level;
+			const tile = level.map[this.x][this.y];
+			if (tile && tile.tilesetData === '23-1') { // POSSESSIONS tile key
+				const levelId = (level as any).id || 'unknown';
+				const key = this.x + '-' + this.y;
+				const pile = this.game.world.possessionPiles && this.game.world.possessionPiles[levelId] && this.game.world.possessionPiles[levelId][key];
+				if (pile && pile.items && pile.items.length){
+					// Recover all items regardless of capacity
+					for (const it of pile.items){ this.addItem(it); }
+					level.map[this.x][this.y] = pile.originalTile || tile;
+					delete this.game.world.possessionPiles[levelId][key];
+					this.game.display.message('You recover your possessions.');
+				}
+			}
+		} catch(e) {}
 		// Boat travel: if standing on a boat tile, teleport to its linked counterpart
 		try {
 			const level = this.game.world.level;
