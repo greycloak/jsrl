@@ -22,6 +22,23 @@ export default {
 				this.mode = 'MOVEMENT';
 			}
 		} else if (this.mode === 'MOVEMENT'){
+			// Ranged attack with Sling during combat: press R then a direction
+			if (k === ut.KEY_R){
+				const inCombat = this.game.world && this.game.world.inCombat;
+				if (!inCombat){
+					this.game.display.message('You can only use ranged weapons in combat.');
+					return;
+				}
+				const hasRanged = this.game.player.hasItemNamed && this.game.player.hasItemNamed('Sling');
+				if (!hasRanged){
+					this.game.display.message('You do not have any ranged weapons!');
+					return;
+				}
+				this.mode = 'SELECT_DIRECTION';
+				this.directionAction = 'RANGED';
+				this.game.display.message('Select a direction.');
+				return;
+			}
 			// Show character
 			if (k === ut.KEY_C){
 				this.mode = 'CHARACTER';
@@ -118,8 +135,13 @@ export default {
 			}
 		} else if (this.mode === 'SELECT_DIRECTION'){
 			if (k === ut.KEY_ESCAPE){
-				this.mode = 'INVENTORY';
-				this.game.display.showInventory();
+				// If selecting for ranged, cancel back to movement; otherwise back to inventory
+				if (this.directionAction === 'RANGED'){
+					this.mode = 'MOVEMENT';
+				} else {
+					this.mode = 'INVENTORY';
+					this.game.display.showInventory();
+				}
 				this.game.display.message("Cancelled.");
 				return;
 			}
@@ -130,6 +152,11 @@ export default {
 			else if (k === ut.KEY_UP || k === ut.KEY_K) this.movedir.y = -1;
 			else if (k === ut.KEY_DOWN || k === ut.KEY_J) this.movedir.y = 1;
 			else return;
+			if (this.directionAction === 'RANGED'){
+				this.game.player.tryRangedAttack(this.movedir.x, this.movedir.y);
+				this.mode = 'MOVEMENT';
+				return;
+			}
 			this.game.player.tryUse(this.selectedItem, this.movedir.x, this.movedir.y);
 			this.mode = 'MOVEMENT';
 		} else if (this.mode === 'MAP'){

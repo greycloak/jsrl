@@ -26,6 +26,7 @@ export default {
 	supplies: 0,
 	radiation: 0,
 	health: 6,
+	maxHealth: 6,
 	favor: { 'Red Queen': 0, 'Machine Collective': 0, 'Warlords': 0, 'Archivists': 0 },
 	init: function(game) {
 		this.game = game;
@@ -42,7 +43,8 @@ export default {
 		this.water = 0;
 		this.supplies = 0;
 		this.radiation = 0;
-		this.health = 6;
+		this.maxHealth = 6;
+		this.health = this.maxHealth;
 		this.favor = { 'Red Queen': 0, 'Machine Collective': 0, 'Warlords': 0, 'Archivists': 0 };
 	},
 	randomName: function() {
@@ -54,13 +56,71 @@ export default {
 			+ ends[Math.floor(Math.random()*ends.length)];
 	},
 	tryMove: function(dir) {
-		if (!this.game.world.level.canWalkTo(this.x+dir.x, this.y+dir.y)){
+		const level = this.game.world.level;
+		const nx = this.x + dir.x, ny = this.y + dir.y;
+		// If moving into a monster
+		const targetBeing = level.getBeing && level.getBeing(nx, ny);
+		if (targetBeing){
+			if (this.game.world.inCombat){
+				// Attack in combat
+				this.attack(targetBeing);
+				this.endTurn();
+			} else {
+				// Start combat from overworld
+				this.game.world.startCombat && this.game.world.startCombat(targetBeing);
+			}
 			this.game.input.inputEnabled = true;
 			return;
 		}
-		this.x += dir.x;
-		this.y += dir.y;
+		if (!level.canWalkTo(nx, ny)){
+			this.game.input.inputEnabled = true;
+			return;
+		}
+		this.x = nx;
+		this.y = ny;
 		this.land();
+	},
+
+	attack: function(being) {
+		const dmg = 1;
+		being.takeDamage(dmg);
+		this.game.display.message(`You hit the ${being['tileName'] || 'enemy'} for ${dmg}!`);
+	},
+
+	hasItemNamed: function(name: string) {
+		for (let i = 0; i < this.items.length; i++){
+			if (this.items[i] && this.items[i].def && this.items[i].def.name === name) return true;
+		}
+		return false;
+	},
+
+	tryRangedAttack: function(dx: number, dy: number) {
+		// Only in combat and only if player has a Sling
+		if (!this.game.world.inCombat){
+			this.game.display.message('You can only use the sling in combat.');
+			return;
+		}
+		if (!this.hasItemNamed('Sling')){
+			this.game.display.message('You do not have any ranged weapons!');
+			return;
+		}
+		const range = 3;
+		const level = this.game.world.level;
+		for (let i = 1; i <= range; i++){
+			const tx = this.x + dx * i;
+			const ty = this.y + dy * i;
+			const b = level.getBeing && level.getBeing(tx, ty);
+			if (b){
+				const dmg = Math.max(1, Math.floor(Math.random() * 4) + 0); // 1d4 -> 0..3 then +1 below
+				const real = dmg + 1;
+				b.takeDamage(real);
+				this.game.display.message(`You sling a stone for ${real} damage!`);
+				this.endTurn();
+				return;
+			}
+		}
+		this.game.display.message('The stone flies off harmlessly.');
+		this.endTurn();
 	},
 	land: function() {
 		// Boat travel: if standing on a boat tile, teleport to its linked counterpart

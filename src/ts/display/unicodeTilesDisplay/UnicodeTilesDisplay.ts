@@ -58,6 +58,18 @@ export default {
 		}
 		var xr = x - level.player.x;
 		var yr = y - level.player.y;
+		// In combat arenas, reveal everything (no fog of war)
+		if (this.game.world && this.game.world.inCombat){
+			if (level.beings[x] && level.beings[x][y]){
+				return level.beings[x][y].tile;
+			} else if (level.items[x] && level.items[x][y]){
+				return level.items[x][y].def.tile;
+			} else if (level.map[x] && level.map[x][y]){
+				return level.map[x][y].tile;
+			} else {
+				return ut.NULLTILE;
+			}
+		}
 		if (level.player.canSee(xr, yr)) {
 			if (level.beings[x] && level.beings[x][y]){
 				return level.beings[x][y].tile;

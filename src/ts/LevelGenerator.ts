@@ -657,5 +657,19 @@ export default {
 		}
 		const e = randLand();
 		level.addExit(e.x, e.y, nextLevelId, Tiles.STAIRS_UP);
+	},
+	generateCombatLevel: function(level){
+		const WIDTH = 15, HEIGHT = 11;
+		for (let x = 0; x < WIDTH; x++){
+			level.map[x] = [];
+			for (let y = 0; y < HEIGHT; y++){
+				level.map[x][y] = Tiles.GRASS;
+			}
+		}
+		// Simple obstacles
+		for (let x = 5; x <= 9; x++){
+			const y = 3 + ((x%2)===0 ? 1 : 0);
+			level.map[x][y] = Tiles.BUSH;
+		}
 	}
 }

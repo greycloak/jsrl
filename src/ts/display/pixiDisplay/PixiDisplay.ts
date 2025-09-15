@@ -290,7 +290,15 @@ export default {
 		var level = this.game.world.level;
 		var xr = x - level.player.x;
 		var yr = y - level.player.y;
-		if (level.player.canSee(xr, yr)){
+		if (this.game.world && this.game.world.inCombat) {
+			if (level.map[x] && level.map[x][y]){
+				return {
+					tilesetData: level.map[x][y].tilesetData
+				}
+			} else {
+				return null;
+			}
+		} else if (level.player.canSee(xr, yr)){
 			if (level.map[x] && level.map[x][y]){
 				return {
 					tilesetData: level.map[x][y].tilesetData
@@ -315,7 +323,13 @@ export default {
 		var level = this.game.world.level;
 		var xr = x - level.player.x;
 		var yr = y - level.player.y;
-		if (level.player.canSee(xr, yr)){
+		if (this.game.world && this.game.world.inCombat) {
+			if (level.items[x] && level.items[x][y]){
+				return level.items[x][y].def.tilesetData;
+			} else {
+				return null;
+			}
+		} else if (level.player.canSee(xr, yr)){
 			if (level.items[x] && level.items[x][y]){
 				return level.items[x][y].def.tilesetData;
 			} else {
@@ -332,7 +346,13 @@ export default {
 		}
 		var xr = x - level.player.x;
 		var yr = y - level.player.y;
-		if (level.player.canSee(xr, yr)){
+		if (this.game.world && this.game.world.inCombat) {
+			if (level.beings[x] && level.beings[x][y]){
+				return level.beings[x][y].tilesetData;
+			} else {
+				return null;
+			}
+		} else if (level.player.canSee(xr, yr)){
 			if (level.beings[x] && level.beings[x][y]){
 				return level.beings[x][y].tilesetData;
 			} else {

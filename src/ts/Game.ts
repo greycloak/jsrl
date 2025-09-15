@@ -57,6 +57,7 @@ const Game = {
 		Player.addItem(new Item(Items.IRON_SWORD));
 		Player.addItem(new Item(Items.SPELL_OF_LOLZORS));
 		Player.addItem(new Item(Items.BOOK_OF_AURORA));
+		Player.addItem(new Item(Items.SLING));
 		this.display.activateNewGame();
 	}
 }

@@ -57,6 +57,21 @@ export default class Level {
 		this.beings[x][y] = being;
 	}
 
+	getBeing (x: number, y: number): Being | null {
+		try {
+			return (this.beings[x] && this.beings[x][y]) || null;
+		} catch(e) { return null; }
+	}
+
+	removeBeing (being: Being) {
+		// remove from 2D grid
+		try {
+			if (this.beings[being.x]) this.beings[being.x][being.y] = null;
+		} catch(e) {}
+		// remove from list
+		this.beingsList = this.beingsList.filter(b => b !== being);
+	}
+
 	canWalkTo (x: number, y: number) {
 		try {
 			if (this.map[x][y].solid){

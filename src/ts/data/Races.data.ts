@@ -4,11 +4,15 @@ export default {
 	RAT: {
 		tile: new ut.Tile('r', 128, 128, 0),
 		name: 'Rat',
-		tilesetData: '31-8'
+		tilesetData: '31-8',
+		hp: 2,
+		attack: 1
 	},
 	TROLL: {
 		tile: new ut.Tile('T', 128, 128, 0),
 		name: 'Troll',
-		tilesetData: '26-2'
+		tilesetData: '26-2',
+		hp: 6,
+		attack: 2
 	},
 }

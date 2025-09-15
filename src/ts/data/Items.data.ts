@@ -9,6 +9,12 @@ export default {
 		tile: new ut.Tile('/', 128, 128, 128),
 		tilesetData: '32-7'
 	},
+	SLING: {
+		type: ItemType.WEAPON,
+		name: 'Sling',
+		tile: new ut.Tile(')', 200, 200, 200),
+		tilesetData: '33-7'
+	},
 	BOOK_OF_MIRDAS: {
 		type: ItemType.BOOK,
 		name: 'Book of Mirdas',
