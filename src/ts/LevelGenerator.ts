@@ -562,6 +562,60 @@ export default {
 			}
 		}
 
+		// Ensure boats are accessible: clear at least one adjacent approach tile
+		{
+			const dirs4: {dx:number,dy:number, label:'E'|'W'|'N'|'S'}[] = [
+				{dx:-1,dy:0,label:'W'}, {dx:1,dy:0,label:'E'}, {dx:0,dy:-1,label:'N'}, {dx:0,dy:1,label:'S'}
+			];
+			const isWater = (x:number,y:number) => (x>=0&&y>=0&&x<WIDTH&&y<HEIGHT) && !landMask[x][y];
+			for (let x = 0; x < WIDTH; x++){
+				for (let y = 0; y < HEIGHT; y++){
+					const cell = level.map[x][y];
+					if (!cell) continue;
+					const key = cell.tilesetData;
+					if (key !== 'BOAT_EAST' && key !== 'BOAT_WEST' && key !== 'BOAT_NORTH' && key !== 'BOAT_SOUTH') continue;
+					// Identify the water-facing direction from boat key
+					let waterDir: 'E'|'W'|'N'|'S' = 'E';
+					if (key === 'BOAT_EAST') waterDir = 'E';
+					else if (key === 'BOAT_WEST') waterDir = 'W';
+					else if (key === 'BOAT_NORTH') waterDir = 'N';
+					else if (key === 'BOAT_SOUTH') waterDir = 'S';
+					// Verify coastline: ensure water on the facing side; if not, try to find a neighboring water side and adjust waterDir
+					let facing = waterDir;
+					const tryDirs: ('E'|'W'|'N'|'S')[] = ['E','W','N','S'];
+					for (const d of tryDirs){
+						const dd = dirs4.find(v => v.label === d)!;
+						if (isWater(x+dd.dx, y+dd.dy)) { facing = d; break; }
+					}
+					// Ensure at least one approach tile (not water, not stairs/boat) is passable; if blocked, set to GRASS
+					const approachDirs = dirs4.filter(d => d.label !== facing);
+					let hasApproach = false;
+					for (const d of approachDirs){
+						const nx = x + d.dx, ny = y + d.dy;
+						if (nx < 0 || ny < 0 || nx >= WIDTH || ny >= HEIGHT) continue;
+						if (!landMask[nx][ny]) continue; // not land
+						const t = level.map[nx][ny];
+						if (!t) continue;
+						const tk = t.tilesetData;
+						const isBoat = (tk === 'BOAT_EAST' || tk === 'BOAT_WEST' || tk === 'BOAT_NORTH' || tk === 'BOAT_SOUTH');
+						const isStairs = (t === Tiles.STAIRS_UP || t === Tiles.STAIRS_DOWN);
+						const isBush = (t === Tiles.BUSH);
+						if (!isBoat && !isStairs && !isBush) { hasApproach = true; break; }
+					}
+					if (!hasApproach){
+						// Clear the first available land neighbor (non-water) to GRASS as an approach
+						for (const d of approachDirs){
+							const nx = x + d.dx, ny = y + d.dy;
+							if (nx < 0 || ny < 0 || nx >= WIDTH || ny >= HEIGHT) continue;
+							if (!landMask[nx][ny]) continue;
+							level.map[nx][ny] = Tiles.GRASS;
+							break;
+						}
+					}
+				}
+			}
+		}
+
 		// Helper to find a random land cell
 		const randLand = (): {x:number,y:number} => {
 			for (let tries = 0; tries < 5000; tries++){
