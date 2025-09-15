@@ -266,6 +266,17 @@ export default {
 				sprite.position.x = innerX + x * miniTileSize;
 				sprite.position.y = innerY + y * miniTileSize;
 				this.miniTilesContainer.addChild(sprite);
+				// Yellow dot overlay for boats on mini-map
+				if (key === 'BOAT_NORTH' || key === 'BOAT_SOUTH' || key === 'BOAT_EAST' || key === 'BOAT_WEST') {
+					const dot = new Graphics();
+					dot.beginFill(0xFFFF00, 1);
+					const r = Math.max(1, Math.floor(miniTileSize / 3));
+					dot.drawCircle(0, 0, r);
+					dot.endFill();
+					dot.position.x = sprite.position.x + Math.floor(miniTileSize / 2);
+					dot.position.y = sprite.position.y + Math.floor(miniTileSize / 2);
+					this.miniTilesContainer.addChild(dot);
+				}
 			}
 		}
 		// Player marker position

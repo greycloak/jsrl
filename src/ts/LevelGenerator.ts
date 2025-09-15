@@ -131,6 +131,95 @@ export default {
 			}
 		}
 
+		// Helper: place a boat tile for a specific continent facing a direction
+		const placeBoat = (owner: string, facing: 'EAST'|'WEST'|'NORTH'|'SOUTH', hintX: number, hintY: number) => {
+			// clamp helpers
+			const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
+			const yStart = clamp(hintY, 0, HEIGHT-1);
+			const xStart = clamp(hintX, 0, WIDTH-1);
+			// search windows around hints and near barrier edge
+			const maxOffset = 80;
+			if (facing === 'EAST') {
+				const edgeX = Math.max(0, Math.floor(midX - Math.ceil(barrier/2) - 1));
+				for (let dy = 0; dy <= maxOffset; dy++){
+					for (const sy of [yStart - dy, yStart + dy]){
+						if (sy < 0 || sy >= HEIGHT) continue;
+						for (let dx = 0; dx <= 30; dx++){
+							const x = edgeX - dx; const y = sy;
+							if (x < 0) break;
+							if (!landMask[x][y]) continue;
+							if (level.territory[x][y] !== owner) continue;
+							if (x+1 < WIDTH && !landMask[x+1][y]) { level.map[x][y] = Tiles.BOAT_EAST; return true; }
+						}
+					}
+				}
+			} else if (facing === 'WEST') {
+				const edgeX = Math.min(WIDTH-1, Math.floor(midX + Math.floor(barrier/2)));
+				for (let dy = 0; dy <= maxOffset; dy++){
+					for (const sy of [yStart - dy, yStart + dy]){
+						if (sy < 0 || sy >= HEIGHT) continue;
+						for (let dx = 0; dx <= 30; dx++){
+							const x = edgeX + dx; const y = sy;
+							if (x >= WIDTH) break;
+							if (!landMask[x][y]) continue;
+							if (level.territory[x][y] !== owner) continue;
+							if (x-1 >= 0 && !landMask[x-1][y]) { level.map[x][y] = Tiles.BOAT_WEST; return true; }
+						}
+					}
+				}
+			} else if (facing === 'SOUTH') {
+				const edgeY = Math.max(0, Math.floor(midY - Math.ceil(barrier/2) - 1));
+				for (let dx = 0; dx <= maxOffset; dx++){
+					for (const sx of [xStart - dx, xStart + dx]){
+						if (sx < 0 || sx >= WIDTH) continue;
+						for (let dy = 0; dy <= 30; dy++){
+							const x = sx; const y = edgeY - dy;
+							if (y < 0) break;
+							if (!landMask[x][y]) continue;
+							if (level.territory[x][y] !== owner) continue;
+							if (y+1 < HEIGHT && !landMask[x][y+1]) { level.map[x][y] = Tiles.BOAT_SOUTH; return true; }
+						}
+					}
+				}
+			} else if (facing === 'NORTH') {
+				const edgeY = Math.min(HEIGHT-1, Math.floor(midY + Math.floor(barrier/2)));
+				for (let dx = 0; dx <= maxOffset; dx++){
+					for (const sx of [xStart - dx, xStart + dx]){
+						if (sx < 0 || sx >= WIDTH) continue;
+						for (let dy = 0; dy <= 30; dy++){
+							const x = sx; const y = edgeY + dy;
+							if (y >= HEIGHT) break;
+							if (!landMask[x][y]) continue;
+							if (level.territory[x][y] !== owner) continue;
+							if (y-1 >= 0 && !landMask[x][y-1]) { level.map[x][y] = Tiles.BOAT_NORTH; return true; }
+						}
+					}
+				}
+			}
+			return false;
+		};
+
+		// Place two boats per continent, facing neighboring continents across the barrier
+		for (const c of continents){
+			if (c.name === 'Red Queen') {
+				// Top-left: neighbors East (Machine Collective) and South (Warlords)
+				placeBoat(c.name, 'EAST', c.cx, c.cy);
+				placeBoat(c.name, 'SOUTH', c.cx, c.cy);
+			} else if (c.name === 'Machine Collective') {
+				// Top-right: neighbors West (Red Queen) and South (Archivists)
+				placeBoat(c.name, 'WEST', c.cx, c.cy);
+				placeBoat(c.name, 'SOUTH', c.cx, c.cy);
+			} else if (c.name === 'Warlords') {
+				// Bottom-left: neighbors East (Archivists) and North (Red Queen)
+				placeBoat(c.name, 'EAST', c.cx, c.cy);
+				placeBoat(c.name, 'NORTH', c.cx, c.cy);
+			} else if (c.name === 'Archivists') {
+				// Bottom-right: neighbors West (Warlords) and North (Machine Collective)
+				placeBoat(c.name, 'WEST', c.cx, c.cy);
+				placeBoat(c.name, 'NORTH', c.cx, c.cy);
+			}
+		}
+
 		// Scatter some bushes on land only
 		const scatterCount = Math.floor(WIDTH * HEIGHT * 0.02);
 		for (let i = 0; i < scatterCount; i++){
@@ -176,12 +265,6 @@ export default {
 			const s = randLand();
 			level.player.x = s.x;
 			level.player.y = s.y;
-			// Place reference boats around player on initial start
-			const px = s.x, py = s.y;
-			if (py - 1 >= 0) level.map[px][py - 1] = Tiles.BOAT_NORTH;
-			if (py + 1 < HEIGHT) level.map[px][py + 1] = Tiles.BOAT_SOUTH;
-			if (px + 1 < WIDTH) level.map[px + 1][py] = Tiles.BOAT_EAST;
-			if (px - 1 >= 0) level.map[px - 1][py] = Tiles.BOAT_WEST;
 		}
 		const e = randLand();
 		level.addExit(e.x, e.y, nextLevelId, Tiles.STAIRS_UP);
