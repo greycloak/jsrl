@@ -328,6 +328,35 @@ export default {
 		link(boatsByCont['Warlords'] && boatsByCont['Warlords']['EAST'], boatsByCont['Archivists'] && boatsByCont['Archivists']['WEST']);
 		link(boatsByCont['Archivists'] && boatsByCont['Archivists']['WEST'], boatsByCont['Warlords'] && boatsByCont['Warlords']['EAST']);
 
+		// Place a CITY tile within 3 tiles of each boat (on GRASS)
+		const placeCityNear = (bx: number, by: number) => {
+			const candidates: {x:number,y:number}[] = [];
+			for (let dx = -3; dx <= 3; dx++){
+				for (let dy = -3; dy <= 3; dy++){
+					const x = bx + dx, y = by + dy;
+					if (x < 0 || y < 0 || x >= WIDTH || y >= HEIGHT) continue;
+					if (dx*dx + dy*dy > 9) continue; // within radius 3
+					if (!landMask[x][y]) continue; // only land
+					const t = level.map[x][y];
+					if (!t) continue;
+					if (t !== Tiles.GRASS) continue; // avoid overwriting specials
+					candidates.push({x,y});
+				}
+			}
+			if (!candidates.length) return;
+			const pick = candidates[Random.n(0, candidates.length-1)];
+			level.map[pick.x][pick.y] = Tiles.CITY;
+		};
+
+		for (const cname in boatsByCont){
+			const bset = boatsByCont[cname];
+			if (!bset) continue;
+			for (const dir in bset){
+				const pos = bset[dir];
+				if (pos) placeCityNear(pos.x, pos.y);
+			}
+		}
+
 		// Scatter some bushes on land only
 		const scatterCount = Math.floor(WIDTH * HEIGHT * 0.02);
 		for (let i = 0; i < scatterCount; i++){

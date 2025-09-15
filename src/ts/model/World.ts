@@ -7,6 +7,7 @@
 import Level from './Level.class';
 import LevelGenerator from '../LevelGenerator';
 import LevelLoader from '../LevelLoader';
+import Tiles from '../data/Tiles.data';
 import Random from '../Random';
 
 export default {
@@ -83,9 +84,9 @@ export default {
 		this.player.updateFOV();
 		this.game.display.refresh();
 	},
-	onPlayerDefeatedInCombat: function(monster) {
+onPlayerDefeatedInCombat: function(monster) {
 		if (!this.inCombat) return;
-		this.game.display.message('You are defeated! Retreating...');
+		this.game.display.message('You are defeated! Retreating to the nearest town...');
 		const ctx = this.combatContext;
 		// Remove inventory and reduce to half health
 		this.player.items = [];
@@ -95,8 +96,28 @@ export default {
 		const enemyBeing = new (BeingClass2 as any)(this.game, ctx.previousLevel, ctx.enemyRace);
 		ctx.previousLevel.addBeing(enemyBeing, ctx.enemyOriginalPos.x, ctx.enemyOriginalPos.y);
 		this.level = ctx.previousLevel;
-		this.player.x = ctx.playerPos.x;
-		this.player.y = ctx.playerPos.y;
+		// Find nearest CITY to the player's previous position
+		let dest = null as null | {x:number,y:number};
+		try {
+			const map = (this.level as any).map;
+			let bestD = 1e9;
+			for (let x = 0; x < map.length; x++){
+				const col = map[x]; if (!col) continue;
+				for (let y = 0; y < col.length; y++){
+					const t = col[y]; if (!t) continue;
+					if (t === Tiles.CITY){
+						const dx = x - ctx.playerPos.x, dy = y - ctx.playerPos.y;
+						const d2 = dx*dx + dy*dy;
+						if (d2 < bestD){ bestD = d2; dest = {x,y}; }
+					}
+				}
+			}
+		} catch(e) { dest = null; }
+		if (dest){
+			this.player.x = dest.x; this.player.y = dest.y;
+		} else {
+			this.player.x = ctx.playerPos.x; this.player.y = ctx.playerPos.y;
+		}
 		this.inCombat = false;
 		this.combatContext = null;
 		this.player.updateFOV();

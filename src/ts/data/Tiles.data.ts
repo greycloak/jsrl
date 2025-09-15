@@ -81,6 +81,14 @@ export default {
 		name: 'Rocky Ground',
 		tilesetData: '4-0'
 	},
+	CITY: {
+		tile: new ut.Tile('C', 255, 255, 255),
+		darkTile: new ut.Tile('C', 180, 180, 180),
+		solid: false,
+		opaque: false,
+		name: 'City',
+		tilesetData: '5-19'
+	},
 	BOAT_EAST: {
 		tile: new ut.Tile('b', 200, 200, 0),
 		darkTile: new ut.Tile('b', 128, 128, 0),
