@@ -15,6 +15,7 @@ export default class Level {
 	private exits: any[];
 	private items: any[];
 	public territory: any[];
+	public boatLinks: { [key: string]: { x: number, y: number } };
 	
 	private beingsList: Being[];
 	private game: any;
@@ -32,6 +33,7 @@ export default class Level {
 		this.exits = [];
 		this.items = [];
 		this.territory = [];
+		this.boatLinks = {};
 
 		this.game = game;
 		this.id = id;

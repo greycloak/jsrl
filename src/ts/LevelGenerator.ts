@@ -131,8 +131,22 @@ export default {
 			}
 		}
 
+		// Helper: ensure the boat tile has at least one orthogonal land neighbor (so it's reachable)
+		const hasLandAccess = (x: number, y: number, owner: string, exclude: 'E'|'W'|'N'|'S') => {
+			const candidates: {dx:number,dy:number,dir:'E'|'W'|'N'|'S'}[] = [
+				{dx:-1, dy:0, dir:'W'}, {dx:1, dy:0, dir:'E'}, {dx:0, dy:-1, dir:'N'}, {dx:0, dy:1, dir:'S'}
+			];
+			for (const c of candidates){
+				if (c.dir === exclude) continue; // skip the water-facing side
+				const nx = x + c.dx, ny = y + c.dy;
+				if (nx < 0 || ny < 0 || nx >= WIDTH || ny >= HEIGHT) continue;
+				if (landMask[nx][ny] && level.territory[nx][ny] === owner) return true;
+			}
+			return false;
+		};
+
 		// Helper: place a boat tile for a specific continent facing a direction
-		const placeBoat = (owner: string, facing: 'EAST'|'WEST'|'NORTH'|'SOUTH', hintX: number, hintY: number) => {
+		const placeBoat = (owner: string, facing: 'EAST'|'WEST'|'NORTH'|'SOUTH', hintX: number, hintY: number): {x:number,y:number, key:string} | null => {
 			// clamp helpers
 			const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 			const yStart = clamp(hintY, 0, HEIGHT-1);
@@ -149,7 +163,7 @@ export default {
 							if (x < 0) break;
 							if (!landMask[x][y]) continue;
 							if (level.territory[x][y] !== owner) continue;
-							if (x+1 < WIDTH && !landMask[x+1][y]) { level.map[x][y] = Tiles.BOAT_EAST; return true; }
+							if (x+1 < WIDTH && !landMask[x+1][y] && hasLandAccess(x,y,owner,'E')) { level.map[x][y] = Tiles.BOAT_EAST; return {x, y, key: 'BOAT_EAST'}; }
 						}
 					}
 				}
@@ -163,7 +177,7 @@ export default {
 							if (x >= WIDTH) break;
 							if (!landMask[x][y]) continue;
 							if (level.territory[x][y] !== owner) continue;
-							if (x-1 >= 0 && !landMask[x-1][y]) { level.map[x][y] = Tiles.BOAT_WEST; return true; }
+							if (x-1 >= 0 && !landMask[x-1][y] && hasLandAccess(x,y,owner,'W')) { level.map[x][y] = Tiles.BOAT_WEST; return {x, y, key: 'BOAT_WEST'}; }
 						}
 					}
 				}
@@ -177,7 +191,7 @@ export default {
 							if (y < 0) break;
 							if (!landMask[x][y]) continue;
 							if (level.territory[x][y] !== owner) continue;
-							if (y+1 < HEIGHT && !landMask[x][y+1]) { level.map[x][y] = Tiles.BOAT_SOUTH; return true; }
+							if (y+1 < HEIGHT && !landMask[x][y+1] && hasLandAccess(x,y,owner,'S')) { level.map[x][y] = Tiles.BOAT_SOUTH; return {x, y, key: 'BOAT_SOUTH'}; }
 						}
 					}
 				}
@@ -191,34 +205,47 @@ export default {
 							if (y >= HEIGHT) break;
 							if (!landMask[x][y]) continue;
 							if (level.territory[x][y] !== owner) continue;
-							if (y-1 >= 0 && !landMask[x][y-1]) { level.map[x][y] = Tiles.BOAT_NORTH; return true; }
+							if (y-1 >= 0 && !landMask[x][y-1] && hasLandAccess(x,y,owner,'N')) { level.map[x][y] = Tiles.BOAT_NORTH; return {x, y, key: 'BOAT_NORTH'}; }
 						}
 					}
 				}
 			}
-			return false;
+			return null;
 		};
 
-		// Place two boats per continent, facing neighboring continents across the barrier
+		// Place two boats per continent and record positions
+		const boatsByCont: { [name: string]: { [dir: string]: {x:number,y:number, key:string} } } = {};
 		for (const c of continents){
+			boatsByCont[c.name] = boatsByCont[c.name] || {};
 			if (c.name === 'Red Queen') {
-				// Top-left: neighbors East (Machine Collective) and South (Warlords)
-				placeBoat(c.name, 'EAST', c.cx, c.cy);
-				placeBoat(c.name, 'SOUTH', c.cx, c.cy);
+				boatsByCont[c.name]['EAST'] = placeBoat(c.name, 'EAST', c.cx, c.cy) || boatsByCont[c.name]['EAST'];
+				boatsByCont[c.name]['SOUTH'] = placeBoat(c.name, 'SOUTH', c.cx, c.cy) || boatsByCont[c.name]['SOUTH'];
 			} else if (c.name === 'Machine Collective') {
-				// Top-right: neighbors West (Red Queen) and South (Archivists)
-				placeBoat(c.name, 'WEST', c.cx, c.cy);
-				placeBoat(c.name, 'SOUTH', c.cx, c.cy);
+				boatsByCont[c.name]['WEST'] = placeBoat(c.name, 'WEST', c.cx, c.cy) || boatsByCont[c.name]['WEST'];
+				boatsByCont[c.name]['SOUTH'] = placeBoat(c.name, 'SOUTH', c.cx, c.cy) || boatsByCont[c.name]['SOUTH'];
 			} else if (c.name === 'Warlords') {
-				// Bottom-left: neighbors East (Archivists) and North (Red Queen)
-				placeBoat(c.name, 'EAST', c.cx, c.cy);
-				placeBoat(c.name, 'NORTH', c.cx, c.cy);
+				boatsByCont[c.name]['EAST'] = placeBoat(c.name, 'EAST', c.cx, c.cy) || boatsByCont[c.name]['EAST'];
+				boatsByCont[c.name]['NORTH'] = placeBoat(c.name, 'NORTH', c.cx, c.cy) || boatsByCont[c.name]['NORTH'];
 			} else if (c.name === 'Archivists') {
-				// Bottom-right: neighbors West (Warlords) and North (Machine Collective)
-				placeBoat(c.name, 'WEST', c.cx, c.cy);
-				placeBoat(c.name, 'NORTH', c.cx, c.cy);
+				boatsByCont[c.name]['WEST'] = placeBoat(c.name, 'WEST', c.cx, c.cy) || boatsByCont[c.name]['WEST'];
+				boatsByCont[c.name]['NORTH'] = placeBoat(c.name, 'NORTH', c.cx, c.cy) || boatsByCont[c.name]['NORTH'];
 			}
 		}
+
+		// Link boats across continents for travel
+		const keyOf = (p: {x:number,y:number}) => `${p.x}-${p.y}`;
+		const link = (a?: {x:number,y:number}, b?: {x:number,y:number}) => {
+			if (!a || !b) return;
+			level.boatLinks[keyOf(a)] = { x: b.x, y: b.y };
+		};
+		link(boatsByCont['Red Queen'] && boatsByCont['Red Queen']['EAST'], boatsByCont['Machine Collective'] && boatsByCont['Machine Collective']['WEST']);
+		link(boatsByCont['Machine Collective'] && boatsByCont['Machine Collective']['WEST'], boatsByCont['Red Queen'] && boatsByCont['Red Queen']['EAST']);
+		link(boatsByCont['Red Queen'] && boatsByCont['Red Queen']['SOUTH'], boatsByCont['Warlords'] && boatsByCont['Warlords']['NORTH']);
+		link(boatsByCont['Warlords'] && boatsByCont['Warlords']['NORTH'], boatsByCont['Red Queen'] && boatsByCont['Red Queen']['SOUTH']);
+		link(boatsByCont['Machine Collective'] && boatsByCont['Machine Collective']['SOUTH'], boatsByCont['Archivists'] && boatsByCont['Archivists']['NORTH']);
+		link(boatsByCont['Archivists'] && boatsByCont['Archivists']['NORTH'], boatsByCont['Machine Collective'] && boatsByCont['Machine Collective']['SOUTH']);
+		link(boatsByCont['Warlords'] && boatsByCont['Warlords']['EAST'], boatsByCont['Archivists'] && boatsByCont['Archivists']['WEST']);
+		link(boatsByCont['Archivists'] && boatsByCont['Archivists']['WEST'], boatsByCont['Warlords'] && boatsByCont['Warlords']['EAST']);
 
 		// Scatter some bushes on land only
 		const scatterCount = Math.floor(WIDTH * HEIGHT * 0.02);

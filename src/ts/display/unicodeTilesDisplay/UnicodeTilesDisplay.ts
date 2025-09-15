@@ -104,7 +104,13 @@ export default {
 				const mapX = innerW > 1 ? Math.floor(mx * (levelW - 1) / (innerW - 1)) : 0;
 				const mapY = innerH > 1 ? Math.floor(my * (levelH - 1) / (innerH - 1)) : 0;
 				if (level.map[mapX] && level.map[mapX][mapY]){
-					this.term.put(level.map[mapX][mapY].tile, left + 1 + mx, top + 1 + my);
+					const cell = level.map[mapX][mapY];
+					this.term.put(cell.tile, left + 1 + mx, top + 1 + my);
+					// Bright yellow dot for boats
+					const key = cell.tilesetData;
+					if (key === 'BOAT_NORTH' || key === 'BOAT_SOUTH' || key === 'BOAT_EAST' || key === 'BOAT_WEST'){
+						this.term.put(new ut.Tile('•', 255, 255, 0), left + 1 + mx, top + 1 + my);
+					}
 				}
 			}
 		}

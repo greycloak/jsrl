@@ -63,6 +63,22 @@ export default {
 		this.land();
 	},
 	land: function() {
+		// Boat travel: if standing on a boat tile, teleport to its linked counterpart
+		try {
+			const level = this.game.world.level;
+			const tile = level.map[this.x][this.y];
+			const key = tile && tile.tilesetData;
+			if (key === 'BOAT_NORTH' || key === 'BOAT_SOUTH' || key === 'BOAT_EAST' || key === 'BOAT_WEST'){
+				const linkKey = this.x + '-' + this.y;
+				const dest = level.boatLinks && level.boatLinks[linkKey];
+				if (dest){
+					const fromFaction = (level.territory[this.x] && level.territory[this.x][this.y]) || 'Unknown';
+					const toFaction = (level.territory[dest.x] && level.territory[dest.x][dest.y]) || 'Unknown';
+					this.x = dest.x; this.y = dest.y;
+					this.game.display.message(`You sail from ${fromFaction} to ${toFaction}.`);
+				}
+			}
+		} catch(e) {}
 		if (this.game.world.level.exits[this.x] && this.game.world.level.exits[this.x][this.y]){
 			this.game.world.loadLevel(this.game.world.level.exits[this.x][this.y]);
 		}
