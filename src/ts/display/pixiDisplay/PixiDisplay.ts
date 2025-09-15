@@ -5,7 +5,7 @@
  * 
  */
 
-import { Application, Assets, Texture, Rectangle, Sprite, Text, Container, Graphics } from 'pixi.js';
+import { Application, Assets, Texture, Rectangle, Sprite, Text, Container, Graphics, TextMetrics } from 'pixi.js';
 import PIXITextBox from './PIXITextBox.class';
 import PixiUtils from './PixiUtils';
 
@@ -116,7 +116,7 @@ export default {
 		mainGameContainer.addChild(this.inventoryBackground);
 
 		this.inventoryCursor = new Sprite(this.textureMap['24-21']);
-		this.inventoryCursor.position.x = 245;
+		// X set relative to background in showInventory
 		this.inventoryCursor.visible = false;
 		mainGameContainer.addChild(this.inventoryCursor);
 
@@ -130,8 +130,9 @@ export default {
 		this.inventoryText.scale.y = 0.25;
 		mainGameContainer.addChild(this.inventoryText);
 		this.inventoryText.visible = false;
-		this.inventoryText.position.x = 16;
-		this.inventoryText.position.y = 16;
+		// Position inventory text near the background panel
+		this.inventoryText.position.x = this.inventoryBackground.position.x + 8;
+		this.inventoryText.position.y = this.inventoryBackground.position.y + 12;
 
 		this.transparentTiles = config.transparentTiles;
 
@@ -395,16 +396,23 @@ export default {
 	showInventory: function() {
 		this.inventoryBackground.visible = true;
 		let string = "Inventory\n\n";
-		for (var i = 0; i < this.game.player.items.length; i++){
-			var item = this.game.player.items[i];
-			if (item == this.game.input.selectedItem){
-				this.inventoryCursor.position.y = 86 + i * 10;
-			}
-			string += item.def.name + '\n';
-
-			//this.term.put(item.def.tile, xBase+2, yBase+1+i);
+		const items = this.game.player.items;
+		for (var i = 0; i < items.length; i++){
+			var item = items[i];
+			string += (i+1) + ") " + item.def.name + '\n';
 		}
 		this.inventoryText.text = string;
+		// Place cursor aligned to the selected index
+		const selIndex = this.game.input.selectedItemIndex || 0;
+		const metrics = TextMetrics.measureText(this.inventoryText.text, this.inventoryText.style);
+		const lineHeightPx = Math.max(1, Math.round(metrics.lineHeight * this.inventoryText.scale.y));
+		const headerLines = 2; // "Inventory" + blank line
+		const lineTopY = this.inventoryText.position.y + (headerLines + selIndex) * lineHeightPx;
+		const baselineAdjust = Math.round(lineHeightPx * 0.15);
+		this.inventoryCursor.width = lineHeightPx;
+		this.inventoryCursor.height = lineHeightPx;
+		this.inventoryCursor.position.x = this.inventoryText.position.x - this.inventoryCursor.width - 2;
+		this.inventoryCursor.position.y = lineTopY + baselineAdjust;
 		this.inventoryText.visible = true;
 		this.inventoryCursor.visible = true;
 	},
