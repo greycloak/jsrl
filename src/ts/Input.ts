@@ -121,7 +121,13 @@ export default {
 				this.game.player.tryDrop(this.selectedItem);
 				this.game.display.hideInventory();
 				this.mode = 'MOVEMENT';
-			} else if (k === ut.KEY_ENTER || k === ut.KEY_U){
+			} else if (k === ut.KEY_E){
+				this.game.player.tryEquip(this.selectedItem);
+				this.game.display.showInventory();
+			} else if (k === ut.KEY_U){
+				this.game.player.tryUnequip(this.selectedItem);
+				this.game.display.showInventory();
+			} else if (k === ut.KEY_ENTER){
 				if (this.selectedItem.def.targetted || this.selectedItem.def.type.targetted){
 					this.game.display.message("Select a direction.");
 					this.game.display.hideInventory();

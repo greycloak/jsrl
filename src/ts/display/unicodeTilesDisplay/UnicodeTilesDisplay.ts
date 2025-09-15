@@ -118,10 +118,18 @@ export default {
 				if (level.map[mapX] && level.map[mapX][mapY]){
 					const cell = level.map[mapX][mapY];
 					this.term.put(cell.tile, left + 1 + mx, top + 1 + my);
-					// Bright yellow dot for boats
+					// Brown dot for boats
 					const key = cell.tilesetData;
 					if (key === 'BOAT_NORTH' || key === 'BOAT_SOUTH' || key === 'BOAT_EAST' || key === 'BOAT_WEST'){
-						this.term.put(new ut.Tile('•', 255, 255, 0), left + 1 + mx, top + 1 + my);
+						this.term.put(new ut.Tile('•', 165, 42, 42), left + 1 + mx, top + 1 + my);
+					}
+					// Gold dot for possessions pile
+					if (key === '23-1'){
+						this.term.put(new ut.Tile('•', 255, 215, 0), left + 1 + mx, top + 1 + my);
+					}
+					// White pixel for towns (CITY tileset 5-19)
+					if (key === '5-19'){
+						this.term.put(new ut.Tile('•', 255, 255, 255), left + 1 + mx, top + 1 + my);
 					}
 				}
 			}
@@ -164,7 +172,9 @@ export default {
 			}
 			this.term.put(item.def.tile, xBase+2, yBase+1+i);
 			this.term.put(item.def.tile, xBase+2, yBase+1+i);
-			this.term.putString(item.def.name, xBase + 4, yBase+1+i, 255, 255, 255);
+			let name = item.def.name;
+			if (item.equippedSlot) name += ' [E]';
+			this.term.putString(name, xBase + 4, yBase+1+i, 255, 255, 255);
 		}
 		this.term.render();
 	},

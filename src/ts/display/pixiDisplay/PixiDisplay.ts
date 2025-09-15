@@ -267,17 +267,39 @@ export default {
 				sprite.position.x = innerX + x * miniTileSize;
 				sprite.position.y = innerY + y * miniTileSize;
 				this.miniTilesContainer.addChild(sprite);
-				// Yellow dot overlay for boats on mini-map
-				if (key === 'BOAT_NORTH' || key === 'BOAT_SOUTH' || key === 'BOAT_EAST' || key === 'BOAT_WEST') {
-					const dot = new Graphics();
-					dot.beginFill(0xFFFF00, 1);
-					const r = Math.max(1, Math.floor(miniTileSize / 3));
-					dot.drawCircle(0, 0, r);
-					dot.endFill();
-					dot.position.x = sprite.position.x + Math.floor(miniTileSize / 2);
-					dot.position.y = sprite.position.y + Math.floor(miniTileSize / 2);
-					this.miniTilesContainer.addChild(dot);
-				}
+					// Brown dot overlay for boats on mini-map
+					if (key === 'BOAT_NORTH' || key === 'BOAT_SOUTH' || key === 'BOAT_EAST' || key === 'BOAT_WEST') {
+						const dot = new Graphics();
+						dot.beginFill(0x8B4513, 1);
+						const r = Math.max(1, Math.floor(miniTileSize / 3));
+						dot.drawCircle(0, 0, r);
+						dot.endFill();
+						dot.position.x = sprite.position.x + Math.floor(miniTileSize / 2);
+						dot.position.y = sprite.position.y + Math.floor(miniTileSize / 2);
+						this.miniTilesContainer.addChild(dot);
+					}
+					// Gold dot overlay for possessions pile tile (tileset 23-1)
+					if (key === '23-1') {
+						const dot = new Graphics();
+						dot.beginFill(0xFFD700, 1);
+						const r = Math.max(1, Math.floor(miniTileSize / 3));
+						dot.drawCircle(0, 0, r);
+						dot.endFill();
+						dot.position.x = sprite.position.x + Math.floor(miniTileSize / 2);
+						dot.position.y = sprite.position.y + Math.floor(miniTileSize / 2);
+						this.miniTilesContainer.addChild(dot);
+					}
+					// White dot overlay for towns (CITY tileset 5-19)
+					if (key === '5-19') {
+						const dot = new Graphics();
+						dot.beginFill(0xFFFFFF, 1);
+						const r = Math.max(1, Math.floor(miniTileSize / 3));
+						dot.drawCircle(0, 0, r);
+						dot.endFill();
+						dot.position.x = sprite.position.x + Math.floor(miniTileSize / 2);
+						dot.position.y = sprite.position.y + Math.floor(miniTileSize / 2);
+						this.miniTilesContainer.addChild(dot);
+					}
 			}
 		}
 		// Player marker position
@@ -419,7 +441,8 @@ export default {
 		const items = this.game.player.items;
 		for (var i = 0; i < items.length; i++){
 			var item = items[i];
-			string += (i+1) + ") " + item.def.name + '\n';
+			let name = item.def.name + (item.equippedSlot ? ' [E]' : '');
+			string += (i+1) + ") " + name + '\n';
 		}
 		this.inventoryText.text = string;
 		// Place cursor aligned to the selected index

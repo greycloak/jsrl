@@ -7,13 +7,16 @@ export default {
 		type: ItemType.WEAPON,
 		name: 'Iron Sword',
 		tile: new ut.Tile('/', 128, 128, 128),
-		tilesetData: '32-7'
+		tilesetData: '32-7',
+		equipSlot: 'hand',
+		meleeDie: '1d6'
 	},
 	SLING: {
 		type: ItemType.WEAPON,
 		name: 'Sling',
 		tile: new ut.Tile(')', 200, 200, 200),
-		tilesetData: '33-7'
+		tilesetData: '33-7',
+		equipSlot: 'ranged'
 	},
 	BOOK_OF_MIRDAS: {
 		type: ItemType.BOOK,

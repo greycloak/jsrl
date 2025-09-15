@@ -82,9 +82,319 @@ export default {
 	},
 
 	attack: function(being) {
-		const dmg = 1;
+		// Melee damage: prefer equipped hand weapon meleeDie; if no hand items, fists (1d2)
+		let dmg = 1;
+		try {
+			const equipped = (this.items || []).filter(it => it && it.equippedSlot === 'hand');
+			let weapon = null as any;
+			for (const it of equipped){ if (it.def && it.def.meleeDie){ weapon = it; break; } }
+			if (weapon && weapon.def.meleeDie){
+				dmg = this.rollDie ? this.rollDie(weapon.def.meleeDie) : (Math.floor(Math.random()*6)+1);
+			} else if (equipped.length === 0) {
+				// fists 1d2
+				dmg = Math.floor(Math.random() * 2) + 1;
+			} else {
+				dmg = 1;
+			}
+		} catch(e) { dmg = 1; }
 		being.takeDamage(dmg);
 		this.game.display.message(`You hit the ${being['tileName'] || 'enemy'} for ${dmg}!`);
+	},
+	rollDie32: function(s: string) { return this.rollDie(s); },
+	rollDie33: function(s: string) { return this.rollDie(s); },
+	rollDie34: function(s: string) { return this.rollDie(s); },
+	rollDie35: function(s: string) { return this.rollDie(s); },
+	rollDie36: function(s: string) { return this.rollDie(s); },
+	rollDie37: function(s: string) { return this.rollDie(s); },
+	rollDie38: function(s: string) { return this.rollDie(s); },
+	rollDie39: function(s: string) { return this.rollDie(s); },
+	rollDie40: function(s: string) { return this.rollDie(s); },
+	rollDie41: function(s: string) { return this.rollDie(s); },
+	rollDie42: function(s: string) { return this.rollDie(s); },
+	rollDie43: function(s: string) { return this.rollDie(s); },
+	rollDie44: function(s: string) { return this.rollDie(s); },
+	rollDie45: function(s: string) { return this.rollDie(s); },
+	rollDie46: function(s: string) { return this.rollDie(s); },
+	rollDie47: function(s: string) { return this.rollDie(s); },
+	rollDie48: function(s: string) { return this.rollDie(s); },
+	rollDie49: function(s: string) { return this.rollDie(s); },
+	rollDie50: function(s: string) { return this.rollDie(s); },
+
+	rollDie51: function(s: string) { return this.rollDie(s); },
+
+	rollDie52: function(s: string) { return this.rollDie(s); },
+	rollDie53: function(s: string) { return this.rollDie(s); },
+	rollDie54: function(s: string) { return this.rollDie(s); },
+	rollDie55: function(s: string) { return this.rollDie(s); },
+	rollDie56: function(s: string) { return this.rollDie(s); },
+
+	rollDie57: function(s: string) { return this.rollDie(s); },
+
+	rollDie58: function(s: string) { return this.rollDie(s); },
+	rollDie59: function(s: string) { return this.rollDie(s); },
+
+	rollDie60: function(s: string) { return this.rollDie(s); },
+
+	rollDie61: function(s: string) { return this.rollDie(s); },
+	rollDie62: function(s: string) { return this.rollDie(s); },
+	rollDie63: function(s: string) { return this.rollDie(s); },
+	rollDie64: function(s: string) { return this.rollDie(s); },
+	rollDie65: function(s: string) { return this.rollDie(s); },
+
+	rollDie66: function(s: string) { return this.rollDie(s); },
+	rollDie67: function(s: string) { return this.rollDie(s); },
+	rollDie68: function(s: string) { return this.rollDie(s); },
+	rollDie69: function(s: string) { return this.rollDie(s); },
+	rollDie70: function(s: string) { return this.rollDie(s); },
+	rollDie71: function(s: string) { return this.rollDie(s); },
+	rollDie72: function(s: string) { return this.rollDie(s); },
+
+	rollDie73: function(s: string) { return this.rollDie(s); },
+	rollDie74: function(s: string) { return this.rollDie(s); },
+
+	rollDie75: function(s: string) { return this.rollDie(s); },
+
+	rollDie76: function(s: string) { return this.rollDie(s); },
+
+	rollDie77: function(s: string) { return this.rollDie(s); },
+
+	rollDie78: function(s: string) { return this.rollDie(s); },
+
+	rollDie79: function(s: string) { return this.rollDie(s); },
+
+	rollDie80: function(s: string) { return this.rollDie(s); },
+
+	rollDie81: function(s: string) { return this.rollDie(s); },
+
+	rollDie82: function(s: string) { return this.rollDie(s); },
+
+	rollDie83: function(s: string) { return this.rollDie(s); },
+	rollDie84: function(s: string) { return this.rollDie(s); },
+
+	rollDie85: function(s: string) { return this.rollDie(s); },
+
+	rollDie86: function(s: string) { return this.rollDie(s); },
+	rollDie87: function(s: string) { return this.rollDie(s); },
+	rollDie88: function(s: string) { return this.rollDie(s); },
+	rollDie89: function(s: string) { return this.rollDie(s); },
+	rollDie90: function(s: string) { return this.rollDie(s); },
+	rollDie91: function(s: string) { return this.rollDie(s); },
+	rollDie92: function(s: string) { return this.rollDie(s); },
+	rollDie93: function(s: string) { return this.rollDie(s); },
+	rollDie94: function(s: string) { return this.rollDie(s); },
+	rollDie95: function(s: string) { return this.rollDie(s); },
+	rollDie96: function(s: string) { return this.rollDie(s); },
+	rollDie97: function(s: string) { return this.rollDie(s); },
+	rollDie98: function(s: string) { return this.rollDie(s); },
+	rollDie99: function(s: string) { return this.rollDie(s); },
+
+	rollDie100: function(s: string) { return this.rollDie(s); },
+
+	rollDie101: function(s: string) { return this.rollDie(s); },
+
+	rollDie102: function(s: string) { return this.rollDie(s); },
+
+	rollDie103: function(s: string) { return this.rollDie(s); },
+
+	rollDie104: function(s: string) { return this.rollDie(s); },
+	rollDie105: function(s: string) { return this.rollDie(s); },
+
+	rollDie106: function(s: string) { return this.rollDie(s); },
+
+	rollDie107: function(s: string) { return this.rollDie(s); },
+	rollDie108: function(s: string) { return this.rollDie(s); },
+
+	rollDie109: function(s: string) { return this.rollDie(s); },
+	rollDie110: function(s: string) { return this.rollDie(s); },
+	rollDie111: function(s: string) { return this.rollDie(s); },
+	rollDie112: function(s: string) { return this.rollDie(s); },
+	rollDie113: function(s: string) { return this.rollDie(s); },
+	rollDie114: function(s: string) { return this.rollDie(s); },
+	rollDie115: function(s: string) { return this.rollDie(s); },
+
+	rollDie116: function(s: string) { return this.rollDie(s); },
+	rollDie117: function(s: string) { return this.rollDie(s); },
+	rollDie118: function(s: string) { return this.rollDie(s); },
+	rollDie119: function(s: string) { return this.rollDie(s); },
+	rollDie120: function(s: string) { return this.rollDie(s); },
+
+	rollDie121: function(s: string) { return this.rollDie(s); },
+
+	rollDie122: function(s: string) { return this.rollDie(s); },
+
+	rollDie123: function(s: string) { return this.rollDie(s); },
+
+	rollDie124: function(s: string) { return this.rollDie(s); },
+
+	rollDie125: function(s: string) { return this.rollDie(s); },
+
+	rollDie126: function(s: string) { return this.rollDie(s); },
+	rollDie127: function(s: string) { return this.rollDie(s); },
+	rollDie128: function(s: string) { return this.rollDie(s); },
+
+	rollDie129: function(s: string) { return this.rollDie(s); },
+	rollDie130: function(s: string) { return this.rollDie(s); },
+	rollDie131: function(s: string) { return this.rollDie(s); },
+	rollDie132: function(s: string) { return this.rollDie(s); },
+	rollDie133: function(s: string) { return this.rollDie(s); },
+	rollDie134: function(s: string) { return this.rollDie(s); },
+	rollDie135: function(s: string) { return this.rollDie(s); },
+
+	rollDie136: function(s: string) { return this.rollDie(s); },
+
+	rollDie137: function(s: string) { return this.rollDie(s); },
+
+	rollDie138: function(s: string) { return this.rollDie(s); },
+
+	rollDie139: function(s: string) { return this.rollDie(s); },
+	rollDie140: function(s: string) { return this.rollDie(s); },
+
+	rollDie141: function(s: string) { return this.rollDie(s); },
+	rollDie142: function(s: string) { return this.rollDie(s); },
+	rollDie143: function(s: string) { return this.rollDie(s); },
+	rollDie144: function(s: string) { return this.rollDie(s); },
+
+	rollDie145: function(s: string) { return this.rollDie(s); },
+
+	rollDie146: function(s: string) { return this.rollDie(s); },
+
+	rollDie147: function(s: string) { return this.rollDie(s); },
+
+	rollDie148: function(s: string) { return this.rollDie(s); },
+
+	rollDie149: function(s: string) { return this.rollDie(s); },
+
+	rollDie150: function(s: string) { return this.rollDie(s); },
+
+	rollDie151: function(s: string) { return this.rollDie(s); },
+	rollDie152: function(s: string) { return this.rollDie(s); },
+
+	rollDie153: function(s: string) { return this.rollDie(s); },
+
+	rollDie154: function(s: string) { return this.rollDie(s); },
+
+	rollDie155: function(s: string) { return this.rollDie(s); },
+
+	rollDie156: function(s: string) { return this.rollDie(s); },
+
+	rollDie157: function(s: string) { return this.rollDie(s); },
+
+	rollDie158: function(s: string) { return this.rollDie(s); },
+
+	rollDie159: function(s: string) { return this.rollDie(s); },
+
+	rollDie160: function(s: string) { return this.rollDie(s); },
+
+	rollDie161: function(s: string) { return this.rollDie(s); },
+
+	rollDie162: function(s: string) { return this.rollDie(s); },
+
+	rollDie163: function(s: string) { return this.rollDie(s); },
+	rollDie164: function(s: string) { return this.rollDie(s); },
+	rollDie165: function(s: string) { return this.rollDie(s); },
+	rollDie166: function(s: string) { return this.rollDie(s); },
+
+	rollDie167: function(s: string) { return this.rollDie(s); },
+
+	rollDie168: function(s: string) { return this.rollDie(s); },
+	rollDie169: function(s: string) { return this.rollDie(s); },
+	rollDie170: function(s: string) { return this.rollDie(s); },
+
+	rollDie171: function(s: string) { return this.rollDie(s); },
+
+	rollDie172: function(s: string) { return this.rollDie(s); },
+
+	rollDie173: function(s: string) { return this.rollDie(s); },
+
+	rollDie174: function(s: string) { return this.rollDie(s); },
+
+	rollDie175: function(s: string) { return this.rollDie(s); },
+
+	rollDie176: function(s: string) { return this.rollDie(s); },
+
+	rollDie177: function(s: string) { return this.rollDie(s); },
+	rollDie178: function(s: string) { return this.rollDie(s); },
+
+	rollDie179: function(s: string) { return this.rollDie(s); },
+	rollDie180: function(s: string) { return this.rollDie(s); },
+
+	rollDie181: function(s: string) { return this.rollDie(s); },
+
+	rollDie182: function(s: string) { return this.rollDie(s); },
+
+	rollDie183: function(s: string) { return this.rollDie(s); },
+	rollDie184: function(s: string) { return this.rollDie(s); },
+	rollDie185: function(s: string) { return this.rollDie(s); },
+
+	rollDie186: function(s: string) { return this.rollDie(s); },
+
+	rollDie187: function(s: string) { return this.rollDie(s); },
+
+	rollDie188: function(s: string) { return this.rollDie(s); },
+	rollDie189: function(s: string) { return this.rollDie(s); },
+	rollDie190: function(s: string) { return this.rollDie(s); },
+
+	rollDie191: function(s: string) { return this.rollDie(s); },
+	rollDie192: function(s: string) { return this.rollDie(s); },
+
+	rollDie193: function(s: string) { return this.rollDie(s); },
+	rollDie194: function(s: string) { return this.rollDie(s); },
+	rollDie195: function(s: string) { return this.rollDie(s); },
+	rollDie196: function(s: string) { return this.rollDie(s); },
+	rollDie197: function(s: string) { return this.rollDie(s); },
+	rollDie198: function(s: string) { return this.rollDie(s); },
+	rollDie199: function(s: string) { return this.rollDie(s); },
+	rollDie200: function(s: string) { return this.rollDie(s); },
+
+	rollDie201: function(s: string) { return this.rollDie(s); },
+
+	rollDie202: function(s: string) { return this.rollDie(s); },
+	rollDie203: function(s: string) { return this.rollDie(s); },
+
+	// Simple die roller: supports forms like '1d6', '2d4'
+	rollDie: function(spec: string) {
+		try {
+			const m = /^(\d+)d(\d+)$/i.exec(spec || '1d1');
+			const count = Math.max(1, parseInt(m && m[1] || '1', 10));
+			const sides = Math.max(1, parseInt(m && m[2] || '1', 10));
+			let total = 0;
+			for (let i = 0; i < count; i++) total += Math.floor(Math.random() * sides) + 1;
+			return total;
+		} catch(e) { return 1; }
+	},
+
+	getEquippedCount: function(slot: string) {
+		let c = 0;
+		for (const it of this.items){ if (it && it.equippedSlot === slot) c++; }
+		return c;
+	},
+	getSlotCapacity: function(slot: string) {
+		switch (slot) {
+			case 'hand': return 2;
+			case 'ring': return 2;
+			case 'ranged': return 1;
+			case 'head': return 1;
+			case 'foot': return 1;
+			case 'glove': return 1;
+			case 'armor': return 1;
+			default: return 0;
+		}
+	},
+	tryEquip: function(item) {
+		const slot = item && item.def && item.def.equipSlot;
+		if (!slot){ this.game.display.message("You can't equip that."); return; }
+		if (item.equippedSlot){ this.game.display.message('It is already equipped.'); return; }
+		const cap = this.getSlotCapacity(slot);
+		if (cap <= 0){ this.game.display.message("You can't equip that."); return; }
+		const count = this.getEquippedCount(slot);
+		if (count >= cap){ this.game.display.message('No free ' + slot + ' slot.'); return; }
+		item.equippedSlot = slot;
+		this.game.display.message('You equip the ' + (item.def && item.def.name || 'item') + '.');
+	},
+	tryUnequip: function(item) {
+		if (!item || !item.equippedSlot){ this.game.display.message('That item is not equipped.'); return; }
+		item.equippedSlot = null;
+		this.game.display.message('You unequip the ' + (item.def && item.def.name || 'item') + '.');
 	},
 
 	hasItemNamed: function(name: string) {
