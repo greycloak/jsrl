@@ -40,5 +40,37 @@ export default {
 		opaque: false,
 		name: 'Water',
 		tilesetData: '8-5'
+	},
+	BOAT_EAST: {
+		tile: new ut.Tile('b', 200, 200, 0),
+		darkTile: new ut.Tile('b', 128, 128, 0),
+		solid: false,
+		opaque: false,
+		name: 'Boat (East)',
+		tilesetData: 'BOAT_EAST'
+	},
+	BOAT_SOUTH: {
+		tile: new ut.Tile('b', 200, 200, 0),
+		darkTile: new ut.Tile('b', 128, 128, 0),
+		solid: false,
+		opaque: false,
+		name: 'Boat (South)',
+		tilesetData: 'BOAT_SOUTH'
+	},
+	BOAT_NORTH: {
+		tile: new ut.Tile('b', 200, 200, 0),
+		darkTile: new ut.Tile('b', 128, 128, 0),
+		solid: false,
+		opaque: false,
+		name: 'Boat (North)',
+		tilesetData: 'BOAT_NORTH'
+	},
+	BOAT_WEST: {
+		tile: new ut.Tile('b', 200, 200, 0),
+		darkTile: new ut.Tile('b', 128, 128, 0),
+		solid: false,
+		opaque: false,
+		name: 'Boat (West)',
+		tilesetData: 'BOAT_WEST'
 	}
 }

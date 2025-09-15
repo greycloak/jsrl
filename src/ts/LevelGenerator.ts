@@ -176,6 +176,12 @@ export default {
 			const s = randLand();
 			level.player.x = s.x;
 			level.player.y = s.y;
+			// Place reference boats around player on initial start
+			const px = s.x, py = s.y;
+			if (py - 1 >= 0) level.map[px][py - 1] = Tiles.BOAT_NORTH;
+			if (py + 1 < HEIGHT) level.map[px][py + 1] = Tiles.BOAT_SOUTH;
+			if (px + 1 < WIDTH) level.map[px + 1][py] = Tiles.BOAT_EAST;
+			if (px - 1 >= 0) level.map[px - 1][py] = Tiles.BOAT_WEST;
 		}
 		const e = randLand();
 		level.addExit(e.x, e.y, nextLevelId, Tiles.STAIRS_UP);

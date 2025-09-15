@@ -55,6 +55,12 @@ export default {
 				this.textureMap[x+'-'+y] = spriteTexture;
 			}
 		}
+		// Sprite aliases for convenient references
+		this.textureMap['BOAT_EAST'] = this.textureMap['11-19'];
+		this.textureMap['BOAT_SOUTH'] = this.textureMap['10-19'];
+		this.textureMap['BOAT_NORTH'] = this.textureMap['9-19'];
+		// Mirror of BOAT_EAST (we flip at render time)
+		this.textureMap['BOAT_WEST'] = this.textureMap['11-19'];
 		const titleScreenContainer = new Container();
 		this.titleScreenContainer = titleScreenContainer;
 		app.stage.addChild(titleScreenContainer);
@@ -253,6 +259,8 @@ export default {
 				if (!cell) continue;
 				const key = cell.tilesetData;
 				const sprite = new Sprite(this.textureMap[key] || this.textureMap['0-0']);
+				// Handle horizontal flip for special keys (e.g., BOAT_WEST)
+				if (key === 'BOAT_WEST') { sprite.anchor.x = 1; sprite.scale.x = -1; } else { sprite.anchor.x = 0; sprite.scale.x = 1; }
 				sprite.width = miniTileSize;
 				sprite.height = miniTileSize;
 				sprite.position.x = innerX + x * miniTileSize;
@@ -338,15 +346,22 @@ export default {
 					const terrainTexture = terrain ? this.textureMap[terrain.tilesetData] : noTexture;
 					const index = (x+this.semiViewportCountX)+'-'+(y+this.semiViewportCountY);
 					this.tileLayers[0][index].texture = terrainTexture;
+					// Flip handling per layer based on key label
+					const setFlip = (sprite, key) => {
+						if (key === 'BOAT_WEST') { sprite.anchor.x = 1; sprite.scale.x = -1; } else { sprite.anchor.x = 0; sprite.scale.x = 1; }
+					};
+					setFlip(this.tileLayers[0][index], terrain ? terrain.tilesetData : '');
 					if (terrain) {
 						if (terrain.variation === 'outOfSight') {
 							this.tileLayers[0][index].tint = 0x0000CC;
 						} else {
 							this.tileLayers[0][index].tint = 0xFFFFFF;
 						}
-					} 
+					}
 					this.tileLayers[1][index].texture = itemTexture;
+					setFlip(this.tileLayers[1][index], item || '');
 					this.tileLayers[2][index].texture = beingTexture;
+					setFlip(this.tileLayers[2][index], being || '');
 				}
 			}
 		// Update mini map if visible
