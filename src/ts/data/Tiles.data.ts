@@ -9,6 +9,14 @@ export default {
 		name: 'Grass',
 		tilesetData: '5-0'
 	},
+	SNOW: {
+		tile: new ut.Tile('·', 255, 255, 255),
+		darkTile: new ut.Tile('·', 180, 180, 200),
+		solid: false,
+		opaque: false,
+		name: 'Snow',
+		tilesetData: '5-2'
+	},
 	STAIRS_DOWN: {
 		tile: new ut.Tile('>', 255, 255, 255),
 		darkTile: new ut.Tile('>', 128, 128, 128),

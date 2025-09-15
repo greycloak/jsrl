@@ -107,6 +107,87 @@ export default {
 			}
 		}
 
+		// Ensure one massive snow cluster on the top-right continent (Machine Collective)
+		// covering ~10% of its northern shoreline band.
+		{
+			const fname = 'Machine Collective';
+			// Determine continent vertical extent
+			let minY = HEIGHT, maxY = -1;
+			for (let x = 0; x < WIDTH; x++){
+				for (let y = 0; y < HEIGHT; y++){
+					if (!landMask[x][y]) continue;
+					if (level.territory[x][y] !== fname) continue;
+					minY = Math.min(minY, y);
+					maxY = Math.max(maxY, y);
+				}
+			}
+			if (maxY >= 0) {
+				const bandY = Math.floor(minY + (maxY - minY) * 0.20); // top 20% band
+				const isProtected = (t): boolean => {
+					if (!t) return true;
+					const k = t.tilesetData;
+					const boat = (k === 'BOAT_NORTH' || k === 'BOAT_SOUTH' || k === 'BOAT_EAST' || k === 'BOAT_WEST');
+					const stairs = (t === Tiles.STAIRS_UP || t === Tiles.STAIRS_DOWN);
+					return boat || stairs;
+				};
+				// Shoreline candidates: land in band with water to the north (any of N, NW, NE)
+				const shoreline: {x:number,y:number, score:number}[] = [];
+				for (let x = 0; x < WIDTH; x++){
+					for (let y = minY; y <= bandY; y++){
+						if (!landMask[x][y]) continue;
+						if (level.territory[x][y] !== fname) continue;
+						const t = level.map[x][y];
+						if (isProtected(t)) continue;
+						let waterAdj = 0;
+						const neigh = [ {dx:0,dy:-1}, {dx:-1,dy:-1}, {dx:1,dy:-1} ];
+						for (const d of neigh){
+							const nx = x + d.dx, ny = y + d.dy;
+							if (nx < 0 || ny < 0 || nx >= WIDTH || ny >= HEIGHT) { waterAdj++; continue; }
+							if (!landMask[nx][ny]) waterAdj++;
+						}
+						if (waterAdj > 0) shoreline.push({x,y,score:waterAdj});
+					}
+				}
+				if (shoreline.length) {
+					const target = Math.max(1, Math.floor(shoreline.length * 0.10));
+					// Pick a seed with strong shoreline score
+					let seed = shoreline[0];
+					for (let i = 0; i < 200; i++){
+						const cand = shoreline[Random.n(0, shoreline.length-1)];
+						if (cand.score > seed.score) seed = cand;
+					}
+					// BFS growth constrained to band and continent, avoiding protected tiles
+					const q: {x:number,y:number}[] = [ {x:seed.x, y:seed.y} ];
+					const seen: {[k:string]: boolean} = {};
+					const keyOf = (p:{x:number,y:number}) => p.x+'-'+p.y;
+					const dirs4 = [ {dx:-1,dy:0}, {dx:1,dy:0}, {dx:0,dy:-1}, {dx:0,dy:1} ];
+					let placed = 0;
+					while (q.length && placed < target){
+						const cur = q.shift(); if (!cur) break;
+						const k = keyOf(cur); if (seen[k]) continue; seen[k] = true;
+						if (cur.x < 0 || cur.y < 0 || cur.x >= WIDTH || cur.y >= HEIGHT) continue;
+						if (!landMask[cur.x][cur.y]) continue;
+						if (level.territory[cur.x][cur.y] !== fname) continue;
+						if (cur.y < minY || cur.y > bandY) continue;
+						const tcur = level.map[cur.x][cur.y];
+						if (isProtected(tcur)) continue;
+						level.map[cur.x][cur.y] = Tiles.SNOW;
+						placed++;
+						for (const d of dirs4){
+							const nx = cur.x + d.dx, ny = cur.y + d.dy;
+							if (nx < 0 || ny < 0 || nx >= WIDTH || ny >= HEIGHT) continue;
+							if (!landMask[nx][ny]) continue;
+							if (level.territory[nx][ny] !== fname) continue;
+							if (ny < minY || ny > bandY) continue;
+							const tnb = level.map[nx][ny];
+							if (isProtected(tnb)) continue;
+							const nk = nx+'-'+ny; if (!seen[nk]) q.push({x:nx,y:ny});
+						}
+					}
+				}
+			}
+		}
+
 		// Smooth shorelines with a couple of CA passes
 		const dirs = [[-1,-1], [0,-1], [1,-1], [-1,0], [1,0], [-1,1], [0,1], [1,1]];
 		for (let pass = 0; pass < 2; pass++){
@@ -343,6 +424,141 @@ export default {
 					}
 				}
 				if (!anyProgress) break outer; // cannot place more without overwriting
+			}
+		}
+
+		// Snow coverage on far north of top continents (clustered ~20%)
+		const topContinents = ['Red Queen', 'Machine Collective'];
+		for (const fname of topContinents){
+			// Build list of land cells for this continent to determine northern band
+			let minY = HEIGHT, maxY = -1;
+			for (let x = 0; x < WIDTH; x++){
+				for (let y = 0; y < HEIGHT; y++){
+					if (!landMask[x][y]) continue;
+					if (level.territory[x][y] !== fname) continue;
+					minY = Math.min(minY, y);
+					maxY = Math.max(maxY, y);
+				}
+			}
+			if (maxY < 0) continue; // none found
+			const bandY = Math.floor(minY + (maxY - minY) * 0.30); // top 30% band
+			// Candidates are land tiles in the northern band excluding boats and stairs
+			const candidates: {x:number,y:number}[] = [];
+			for (let x = 0; x < WIDTH; x++){
+				for (let y = minY; y <= bandY; y++){
+					if (!landMask[x][y]) continue;
+					if (level.territory[x][y] !== fname) continue;
+					const t = level.map[x][y];
+					if (!t) continue;
+					const key = t.tilesetData;
+					const isBoat = (key === 'BOAT_NORTH' || key === 'BOAT_SOUTH' || key === 'BOAT_EAST' || key === 'BOAT_WEST');
+					const isStairs = (t === Tiles.STAIRS_UP || t === Tiles.STAIRS_DOWN);
+					if (isBoat || isStairs) continue;
+					candidates.push({x,y});
+				}
+			}
+			if (!candidates.length) continue;
+			const target = Math.floor(candidates.length * 0.20);
+			if (target <= 0) continue;
+			// Move one cluster from top-right to top-left: TL gets 3, TR gets 1
+			const clusterCount = (fname === 'Red Queen') ? 3 : 1;
+			const perCluster: number[] = [];
+			for (let i = 0; i < clusterCount; i++) perCluster[i] = Math.floor(target / clusterCount);
+			for (let i = 0; i < (target % clusterCount); i++) perCluster[i]++;
+			// Choose spaced seeds inside band (prefer GRASS tiles)
+			const dist2 = (a:{x:number,y:number}, b:{x:number,y:number}) => { const dx=a.x-b.x, dy=a.y-b.y; return dx*dx+dy*dy; };
+			const seeds: {x:number,y:number}[] = [];
+			for (let s = 0; s < clusterCount; s++){
+				let best = candidates[Random.n(0, candidates.length-1)], bestScore = -1;
+				for (let tries = 0; tries < 50; tries++){
+					const cand = candidates[Random.n(0, candidates.length-1)];
+					let score = 1e9;
+					for (const prev of seeds){ score = Math.min(score, dist2(cand, prev)); }
+					if (seeds.length === 0) score = Math.random();
+					if (score > bestScore){ bestScore = score; best = cand; }
+				}
+				// If best is protected (boat/stairs), find a nearby valid candidate in-band
+				{
+					let found = null as null | {x:number,y:number};
+					for (let radius = 1; radius <= 6 && !found; radius++){
+						for (let dx = -radius; dx <= radius && !found; dx++){
+							for (let dy = -radius; dy <= radius && !found; dy++){
+								const nx = best.x + dx, ny = best.y + dy;
+								if (nx < 0 || ny < 0 || nx >= WIDTH || ny >= HEIGHT) continue;
+								if (!landMask[nx][ny]) continue;
+								if (level.territory[nx][ny] !== fname) continue;
+								if (ny < minY || ny > bandY) continue;
+								const tt = level.map[nx][ny];
+								if (!tt) continue;
+								const k2 = tt.tilesetData;
+								const boat2 = (k2 === 'BOAT_NORTH' || k2 === 'BOAT_SOUTH' || k2 === 'BOAT_EAST' || k2 === 'BOAT_WEST');
+								const stairs2 = (tt === Tiles.STAIRS_UP || tt === Tiles.STAIRS_DOWN);
+								if (boat2 || stairs2) continue;
+								found = {x:nx, y:ny};
+							}
+						}
+					}
+					if (found) best = found;
+				}
+				seeds.push(best);
+			}
+			// Grow clusters via BFS restricted to band and continent and GRASS-only
+			const dirs4 = [ {dx:-1,dy:0}, {dx:1,dy:0}, {dx:0,dy:-1}, {dx:0,dy:1} ];
+			const queues: {x:number,y:number}[][] = [];
+			const seen: {[key:string]: boolean} = {};
+			for (let i = 0; i < clusterCount; i++){
+				queues[i] = [];
+				// Only start from valid seed (not boat/stairs)
+				const s0 = seeds[i];
+				const t0 = level.map[s0.x][s0.y];
+				if (t0) {
+					const k0 = t0.tilesetData;
+					const boat0 = (k0 === 'BOAT_NORTH' || k0 === 'BOAT_SOUTH' || k0 === 'BOAT_EAST' || k0 === 'BOAT_WEST');
+					const stairs0 = (t0 === Tiles.STAIRS_UP || t0 === Tiles.STAIRS_DOWN);
+					if (!boat0 && !stairs0) queues[i].push(s0);
+				}
+			}
+			const placedPer: number[] = new Array(clusterCount).fill(0);
+			let totalPlaced = 0;
+			const keyOf = (p:{x:number,y:number}) => p.x+'-'+p.y;
+			outer2: while (totalPlaced < target){
+				let anyProgress = false;
+				for (let i = 0; i < clusterCount; i++){
+					if (placedPer[i] >= perCluster[i]) continue;
+					let steps = 0;
+					while (queues[i].length && placedPer[i] < perCluster[i] && steps < 200){
+						steps++;
+						const cur = queues[i].shift(); if (!cur) break;
+						const k = keyOf(cur); if (seen[k]) continue; seen[k] = true;
+						if (cur.x < 0 || cur.y < 0 || cur.x >= WIDTH || cur.y >= HEIGHT) continue;
+						if (!landMask[cur.x][cur.y]) continue;
+						if (level.territory[cur.x][cur.y] !== fname) continue;
+						if (cur.y < minY || cur.y > bandY) continue;
+						const tcur = level.map[cur.x][cur.y];
+						if (!tcur) continue;
+						const kcur = tcur.tilesetData;
+						const boatC = (kcur === 'BOAT_NORTH' || kcur === 'BOAT_SOUTH' || kcur === 'BOAT_EAST' || kcur === 'BOAT_WEST');
+						const stairsC = (tcur === Tiles.STAIRS_UP || tcur === Tiles.STAIRS_DOWN);
+						if (boatC || stairsC) continue; // never overwrite protected tiles
+						level.map[cur.x][cur.y] = Tiles.SNOW; // overwrite bush/rock/grass etc.
+						placedPer[i]++; totalPlaced++; anyProgress = true;
+						for (const d of dirs4){
+							const nx = cur.x + d.dx, ny = cur.y + d.dy;
+							if (nx < 0 || ny < 0 || nx >= WIDTH || ny >= HEIGHT) continue;
+							if (!landMask[nx][ny]) continue;
+							if (level.territory[nx][ny] !== fname) continue;
+							if (ny < minY || ny > bandY) continue;
+							const tnb = level.map[nx][ny];
+							if (!tnb) continue;
+							const knb = tnb.tilesetData;
+							const boatN = (knb === 'BOAT_NORTH' || knb === 'BOAT_SOUTH' || knb === 'BOAT_EAST' || knb === 'BOAT_WEST');
+							const stairsN = (tnb === Tiles.STAIRS_UP || tnb === Tiles.STAIRS_DOWN);
+							if (boatN || stairsN) continue;
+							const nk = nx+'-'+ny; if (!seen[nk]) queues[i].push({x:nx,y:ny});
+						}
+					}
+				}
+				if (!anyProgress) break outer2;
 			}
 		}
 
