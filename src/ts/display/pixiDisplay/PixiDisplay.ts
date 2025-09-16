@@ -63,6 +63,12 @@ export default {
 		const mainGameContainer = new Container();
 		this.mainGameContainer = mainGameContainer;
 		app.stage.addChild(mainGameContainer);
+
+		const pivotX = this.viewportCountX * this.tileSize / 2;
+		const pivotY = this.viewportCountY * this.tileSize / 2;
+		mainGameContainer.pivot.set(pivotX, pivotY);
+		mainGameContainer.position.set(pivotX, pivotY);
+
 		mainGameContainer.visible = false;
 		this.tileLayers = [
 			[],[],[]
