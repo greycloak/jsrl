@@ -33,6 +33,12 @@ export default {
 				if (this.game.display.zoomOut) this.game.display.zoomOut();
 				return;
 			}
+			// Show help
+			if (k === 191 && shift) {
+				this.mode = 'HELP';
+				this.game.display.showHelp();
+				return;
+			}
 			// Ranged attack with Sling during combat: press R then a direction
 			if (k === ut.KEY_ESCAPE && this.game.display.inMapView) {
 				this.game.display.hideMap();
@@ -183,7 +189,12 @@ export default {
 			}
 			this.game.player.tryUse(this.selectedItem, this.movedir.x, this.movedir.y);
 			this.mode = 'MOVEMENT';
-		}  else if (this.mode === 'CHARACTER'){
+		} else if (this.mode === 'HELP'){
+			if (k === ut.KEY_ESCAPE || (k === 191 && shift)){
+				this.mode = 'MOVEMENT';
+				this.game.display.hideHelp();
+			}
+		} else if (this.mode === 'CHARACTER'){
 			if (k === ut.KEY_ESCAPE || k === ut.KEY_C){
 				this.mode = 'MOVEMENT';
 				this.game.display.hideCharacter();

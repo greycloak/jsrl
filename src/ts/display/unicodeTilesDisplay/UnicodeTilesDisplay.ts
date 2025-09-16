@@ -232,6 +232,30 @@ export default {
 		this.term.clear();
 		this.refresh();
 	},
+	showHelp: function() {
+		const cols = this.term.w;
+		const rows = this.term.h;
+		const boxW = Math.min(70, cols - 4);
+		const boxH = Math.min(10, rows - 4);
+		const x0 = 2;
+		const y0 = 2;
+		// Draw border
+		this.term.putString("+" + "-".repeat(boxW-2) + "+", x0, y0, 255, 255, 255);
+		for (let i = 0; i < boxH-2; i++){
+			this.term.putString("|" + " ".repeat(boxW-2) + "|", x0, y0+1+i, 255, 255, 255);
+		}
+		this.term.putString("+" + "-".repeat(boxW-2) + "+", x0, y0+boxH-1, 255, 255, 255);
+		// Content
+		let y = y0 + 1;
+		const write = (s, c1=255,c2=255,c3=255) => { this.term.putString(s, x0+2, y, c1,c2,c3); y++; }
+		write("Help", 255, 200, 0);
+		write("Welcome to JSRL. Move around using the arrow keys, press comma to get items, [I] to access the inventory, then [U] or Enter to use items and [D] to drop them.");
+		this.term.render();
+	},
+	hideHelp: function() {
+		this.term.clear();
+		this.refresh();
+	},
 	titleScreen() {
 		this.term.putString("JSRL Sample Roguelike", 2, 2, 255, 255, 255);
 		this.term.putString("Press Space to Start", 6, 4, 255, 255, 255);

@@ -98,7 +98,7 @@ export default {
 		text.position.y = 10;
 		text.scale.x = 0.25;
 		text.scale.y = 0.25;
-		mainGameContainer.addChild(text);
+		app.stage.addChild(text);
 		this.textBox = new PIXITextBox(text);
 
 		this.inventoryBackground = new Sprite(blackTexture);
@@ -107,12 +107,12 @@ export default {
 		this.inventoryBackground.position.x = 246;
 		this.inventoryBackground.position.y = 64;
 		this.inventoryBackground.visible = false;
-		mainGameContainer.addChild(this.inventoryBackground);
+		app.stage.addChild(this.inventoryBackground);
 
 		this.inventoryCursor = new Sprite(this.textureMap['24-21']);
 		// X set relative to background in showInventory
 		this.inventoryCursor.visible = false;
-		mainGameContainer.addChild(this.inventoryCursor);
+		app.stage.addChild(this.inventoryCursor);
 
 		this.inventoryText = new Text('', {
 			fontFamily: 'Kenney Pixel',
@@ -122,7 +122,7 @@ export default {
 		});
 		this.inventoryText.scale.x = 0.25;
 		this.inventoryText.scale.y = 0.25;
-		mainGameContainer.addChild(this.inventoryText);
+		app.stage.addChild(this.inventoryText);
 		this.inventoryText.visible = false;
 		// Position inventory text near the background panel
 		this.inventoryText.position.x = this.inventoryBackground.position.x + 8;
@@ -162,7 +162,7 @@ export default {
 		// Character overlay (text on black background)
 		this.charOverlay = new Container();
 		this.charOverlay.visible = false;
-		mainGameContainer.addChild(this.charOverlay);
+		app.stage.addChild(this.charOverlay);
 		this.charBg = new Sprite(blackTexture);
 		this.charBg.alpha = 0.8;
 		this.charBg.width = Math.min(320, this.tileSize * this.viewportCountX - 16);
@@ -180,6 +180,28 @@ export default {
 		this.charText.scale.set(0.25, 0.25);
 		this.charText.position.set(this.charBg.position.x + 8, this.charBg.position.y + 8);
 		this.charOverlay.addChild(this.charText);
+
+		// Help overlay
+		this.helpOverlay = new Container();
+		this.helpOverlay.visible = false;
+		app.stage.addChild(this.helpOverlay);
+		this.helpBg = new Sprite(blackTexture);
+		this.helpBg.alpha = 0.8;
+		this.helpBg.width = Math.min(400, this.tileSize * this.viewportCountX - 16);
+		this.helpBg.height = Math.min(100, this.tileSize * this.viewportCountY - 16);
+		this.helpBg.position.set(8, 8);
+		this.helpOverlay.addChild(this.helpBg);
+		this.helpText = new Text("Welcome to JSRL. Move around using the arrow keys, press comma to get items, [I] to access the inventory, then [U] or Enter to use items and [D] to drop them.", {
+			fontFamily: 'Kenney Pixel',
+			fontSize: config.textboxFontSize,
+			fill: 0xdddddd,
+			align: 'left',
+			wordWrap: true,
+			wordWrapWidth: this.helpBg.width - 16
+		});
+		this.helpText.scale.set(0.25, 0.25);
+		this.helpText.position.set(this.helpBg.position.x + 8, this.helpBg.position.y + 8);
+		this.helpOverlay.addChild(this.helpText);
 
 		// Zoom state
 		this.zoom = 1.0;
@@ -251,6 +273,12 @@ export default {
 	},
 	hideCharacter: function() {
 		this.charOverlay.visible = false;
+	},
+	showHelp: function() {
+		this.helpOverlay.visible = true;
+	},
+	hideHelp: function() {
+		this.helpOverlay.visible = false;
 	},
 	updateMiniMapOverlay: function() {
 		const level = this.game.world.level;
