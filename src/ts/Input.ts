@@ -13,7 +13,7 @@ export default {
 		this.mode = 'TITLE';
 	},
 	movedir: { x: 0, y: 0 },
-	onKeyDown: function(k){
+	onKeyDown: function(k, shift){
 		if (!this.inputEnabled)
 			return;
 		if (this.mode === 'TITLE'){
@@ -22,6 +22,17 @@ export default {
 				this.mode = 'MOVEMENT';
 			}
 		} else if (this.mode === 'MOVEMENT'){
+			// Zoom in/out on main view with + / -
+			// '+' key (main keyboard '=' keycode 187, shift '+') or numpad plus (107)
+			if ((k === 61 && shift) || k === 107){
+				if (this.game.display.zoomIn) this.game.display.zoomIn();
+				return;
+			}
+			// '-' key (main keyboard dash 189) or numpad minus (109)
+			if (k === 173 || k === 109){
+				if (this.game.display.zoomOut) this.game.display.zoomOut();
+				return;
+			}
 			// Ranged attack with Sling during combat: press R then a direction
 			if (k === ut.KEY_R){
 				const inCombat = this.game.world && this.game.world.inCombat;
@@ -166,6 +177,15 @@ export default {
 			this.game.player.tryUse(this.selectedItem, this.movedir.x, this.movedir.y);
 			this.mode = 'MOVEMENT';
 		} else if (this.mode === 'MAP'){
+			// Zoom mini-map with + / -
+			if ((k === 61 && shift) || k === 107){
+				if (this.game.display.zoomIn) this.game.display.zoomIn();
+				return;
+			}
+			if (k === 173 || k === 109){
+				if (this.game.display.zoomOut) this.game.display.zoomOut();
+				return;
+			}
 			// Close map view on M or Escape
 			if (k === ut.KEY_M || k === ut.KEY_ESCAPE){
 				this.mode = 'MOVEMENT';

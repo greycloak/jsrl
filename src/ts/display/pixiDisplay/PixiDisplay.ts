@@ -11,20 +11,7 @@ import PixiUtils from './PixiUtils';
 
 let theCanvas;
 
-function resizeCanvas () {
-	if (!theCanvas) {
-		return;
-	}
-	const padding = 0;
-	const gameDiv = document.getElementById('game');
-	// Stretch to fill the entire window
-	theCanvas.style.width = (innerWidth - padding) + "px"; 
-	theCanvas.style.height = (innerHeight - padding) + "px";
-	gameDiv.style.width = theCanvas.style.width;
-	gameDiv.style.height = theCanvas.style.height;
-}
 
-window.addEventListener("resize", resizeCanvas);
 
 export default {
 	inMapView: false,
@@ -40,6 +27,7 @@ export default {
 			width: this.tileSize * this.viewportCountX,
 			height: this.tileSize * this.viewportCountY,
 		})
+		this.app = app;
 		document.getElementById('game').appendChild(app.view);
 		theCanvas = app.view;
 		const spritesheetURL = config.tilesetURL;
@@ -187,7 +175,34 @@ export default {
 		this.charText.position.set(this.charBg.position.x + 8, this.charBg.position.y + 8);
 		this.charOverlay.addChild(this.charText);
 
-		resizeCanvas();
+		// Zoom state
+		this.zoom = 1.0;
+		this.miniZoom = 1.0;
+		this.applyZoom();
+		
+	},
+	applyZoom: function() {
+		if (this.inMapView) {
+			this.mapOverlay.scale.set(this.miniZoom, this.miniZoom);
+		} else {
+			this.mainGameContainer.scale.set(this.zoom, this.zoom);
+		}
+	},
+	zoomIn: function() {
+		if (this.inMapView) {
+			this.miniZoom = Math.min(3.0, this.miniZoom + 0.1);
+		} else {
+			this.zoom = Math.min(3.0, this.zoom + 0.1);
+		}
+		this.applyZoom();
+	},
+	zoomOut: function() {
+		if (this.inMapView) {
+			this.miniZoom = Math.max(0.5, this.miniZoom - 0.1);
+		} else {
+			this.zoom = Math.max(0.5, this.zoom - 0.1);
+		}
+		this.applyZoom();
 	},
 	updateMapOverlayLayout: function() {
 		const ts = this.tileSize;

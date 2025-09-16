@@ -12,20 +12,7 @@ import Box from './Box.class';
 
 let theCanvas;
 
-function resizeCanvas () {
-	if (!theCanvas) {
-		return;
-	}
-	const padding = 0;
-	const gameDiv = document.getElementById('game');
-	// Stretch to fill the entire window
-	theCanvas.style.width = (innerWidth - padding) + "px";
-	theCanvas.style.height = (innerHeight - padding) + "px";
-	gameDiv.style.width = theCanvas.style.width;
-	gameDiv.style.height = theCanvas.style.height;
-}
 
-window.addEventListener("resize", resizeCanvas);
 
 export default {
 	BLANK_TILE: new ut.Tile(' ', 255, 255, 255),
@@ -49,7 +36,25 @@ export default {
 		this.textBox = new TextBox(this.term, 2, cols, {x:0, y:0}, this);
 		this.inventoryBox = new Box(this.term, 15, 40, {x:2, y:4});
 		this.centered = config && config.centered;
-		resizeCanvas();
+		this.zoom = 1.0;
+		this.applyZoom();
+		
+	},
+	applyZoom: function() {
+		try {
+			if (theCanvas) {
+				theCanvas.style.transformOrigin = '0 0';
+				theCanvas.style.transform = 'scale(' + this.zoom + ')';
+			}
+		} catch(e) {}
+	},
+	zoomIn: function() {
+		this.zoom = Math.min(3.0, this.zoom + 0.1);
+		this.applyZoom();
+	},
+	zoomOut: function() {
+		this.zoom = Math.max(0.5, this.zoom - 0.1);
+		this.applyZoom();
 	},
 	getDisplayedTile: function(x: number,y: number) {
 		var level = this.game.world.level;

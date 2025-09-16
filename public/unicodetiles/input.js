@@ -201,12 +201,13 @@ ut.initInput = function(onKeyDown, onKeyUp) {
 	document.onkeydown = function(event) {
 		"use strict";
 		var k = event.keyCode;
+		var shift = event.shiftKey;
 		if (ut.pressedKeys[k] !== null && ut.pressedKeys[k] !== undefined) return false;
 		ut.pressedKeys[k] = true;
 		if (ut.onkeydown) {
-			ut.onkeydown(k); // User event handler
+			ut.onkeydown(k, shift); // User event handler
 			// Setup keyrepeat
-			ut.pressedKeys[k] = setInterval("ut.onkeydown("+k+")", ut.keyRepeatDelay);
+			ut.pressedKeys[k] = setInterval(function() { ut.onkeydown(k, shift); }, ut.keyRepeatDelay);
 		}
 		if (ut.pressedKeys[ut.KEY_CTRL] || ut.pressedKeys[ut.KEY_ALT])
 			return true; // CTRL/ALT for browser hotkeys
