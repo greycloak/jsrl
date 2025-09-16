@@ -133,7 +133,7 @@ export default {
 		// Map overlay (top-right mini map)
 		this.mapOverlay = new Container();
 		this.mapOverlay.visible = false;
-		mainGameContainer.addChild(this.mapOverlay);
+		app.stage.addChild(this.mapOverlay);
 		// Mini map dimensions
 		// Width: fixed to 25% of canvas width in pixels for consistency
 		// Height: keep previous behavior (half of canvas height)
