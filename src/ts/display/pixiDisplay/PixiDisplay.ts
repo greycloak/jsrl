@@ -329,6 +329,17 @@ export default {
 		this.miniPlayerDot.position.x = px;
 		this.miniPlayerDot.position.y = py;
 	},
+	updateMiniMapPlayerPosition: function() {
+		const level = this.game.world.level;
+		const ts = this.tileSize;
+		const bt = Math.max(2, Math.floor(ts / 4));
+		const innerX = bt;
+		const innerY = bt;
+		const px = innerX + level.player.x * this.miniTileSize + Math.floor(this.miniTileSize / 2);
+		const py = innerY + level.player.y * this.miniTileSize + Math.floor(this.miniTileSize / 2);
+		this.miniPlayerDot.position.x = px;
+		this.miniPlayerDot.position.y = py;
+	},
 	getTerrain: function(x: number, y: number) {
 		var level = this.game.world.level;
 		var xr = x - level.player.x;
@@ -441,14 +452,14 @@ export default {
 			}
 		// Update mini map if visible
 		if (this.inMapView) {
-			this.updateMapOverlayLayout();
-			this.updateMiniMapOverlay();
+			this.updateMiniMapPlayerPosition();
 		}
 	},
 	showMap: function() {
 		this.inMapView = true;
 		this.mapOverlay.visible = true;
 		this.updateMapOverlayLayout();
+		this.updateMiniMapOverlay();
 		this.refresh();
 	},
 	hideMap: function() {
