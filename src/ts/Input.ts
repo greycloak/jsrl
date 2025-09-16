@@ -34,6 +34,10 @@ export default {
 				return;
 			}
 			// Ranged attack with Sling during combat: press R then a direction
+			if (k === ut.KEY_ESCAPE && this.game.display.inMapView) {
+				this.game.display.hideMap();
+				return;
+			}
 			if (k === ut.KEY_R){
 				const inCombat = this.game.world && this.game.world.inCombat;
 				if (!inCombat){
@@ -58,8 +62,11 @@ export default {
 			}
 			// Toggle full map view
 			if (k === ut.KEY_M){
-				this.mode = 'MAP';
-				this.game.display.showMap();
+				if (this.game.display.inMapView) {
+					this.game.display.hideMap();
+				} else {
+					this.game.display.showMap();
+				}
 				return;
 			}
 			if (k === ut.KEY_COMMA){
@@ -176,23 +183,7 @@ export default {
 			}
 			this.game.player.tryUse(this.selectedItem, this.movedir.x, this.movedir.y);
 			this.mode = 'MOVEMENT';
-		} else if (this.mode === 'MAP'){
-			// Zoom mini-map with + / -
-			if ((k === 61 && shift) || k === 107){
-				if (this.game.display.zoomIn) this.game.display.zoomIn();
-				return;
-			}
-			if (k === 173 || k === 109){
-				if (this.game.display.zoomOut) this.game.display.zoomOut();
-				return;
-			}
-			// Close map view on M or Escape
-			if (k === ut.KEY_M || k === ut.KEY_ESCAPE){
-				this.mode = 'MOVEMENT';
-				this.game.display.hideMap();
-				this.game.display.refresh();
-			}
-		} else if (this.mode === 'CHARACTER'){
+		}  else if (this.mode === 'CHARACTER'){
 			if (k === ut.KEY_ESCAPE || k === ut.KEY_C){
 				this.mode = 'MOVEMENT';
 				this.game.display.hideCharacter();
