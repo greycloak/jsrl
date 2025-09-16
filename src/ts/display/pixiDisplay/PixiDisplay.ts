@@ -196,7 +196,7 @@ export default {
 	},
 	zoomIn: function() {
 		if (this.inMapView) {
-			this.miniZoom = Math.min(3.0, this.miniZoom + 0.1);
+			// Zoom disabled for mini-map
 		} else {
 			this.zoom = Math.min(3.0, this.zoom + 0.1);
 		}
@@ -204,7 +204,7 @@ export default {
 	},
 	zoomOut: function() {
 		if (this.inMapView) {
-			this.miniZoom = Math.max(0.5, this.miniZoom - 0.1);
+			// Zoom disabled for mini-map
 		} else {
 			this.zoom = Math.max(0.5, this.zoom - 0.1);
 		}
